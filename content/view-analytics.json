@@ -1,17 +1,17 @@
 {
-  "totalViews": 119,
+  "totalViews": 123,
   "pages": {
     "/contact": 26,
     "/blog": 14,
-    "/certifications/javascript.pdf": 46,
+    "/certifications/javascript.pdf": 50,
     "/": 13,
     "/blog/my-post": 10,
     "/blog/the-power-of-keeping-things-simple": 10
   },
   "visitors": {
     "8df7404d-5329-4c24-a5fe-b255965f7e39": {
-      "lastSeen": 1787868514884,
-      "path": "/contact"
+      "lastSeen": 1787868818100,
+      "path": "/certifications/javascript.pdf"
     }
   }
 }
