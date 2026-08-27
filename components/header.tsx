@@ -31,6 +31,7 @@ export default function Header({ availableForWork = true }: { availableForWork?:
   );
 
   return (
+    <>
     <header className="sticky top-0 z-50 w-full px-4 pt-4 md:px-6">
       <div className="mx-auto w-full max-w-7xl">
 
@@ -158,12 +159,11 @@ export default function Header({ availableForWork = true }: { availableForWork?:
                   MOBILE LET'S TALK
               ================================================== */}
 
-              <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+              <div className="mt-2">
                 <LetsTalk
                   mobile
                   label="Let's work together"
                 />
-                {themeButton}
               </div>
 
             </nav>
@@ -198,5 +198,17 @@ export default function Header({ availableForWork = true }: { availableForWork?:
 
       </div>
     </header>
+
+    <button
+      type="button"
+      aria-label="Toggle light and dark mode"
+      title="Toggle light and dark mode"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      className="fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-lg transition-colors hover:bg-neutral-100 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-white/10 md:hidden"
+    >
+      <Sun size={19} strokeWidth={1.8} className="hidden dark:block" />
+      <Moon size={19} strokeWidth={1.8} className="block dark:hidden" />
+    </button>
+    </>
   );
 }
