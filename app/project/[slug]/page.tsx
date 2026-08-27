@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getProjectBySlug } from "@/lib/projects";
+import VideoEmbed from "@/components/video-embed";
 
 type Props = {
   params: Promise<{
@@ -130,6 +131,8 @@ export default async function ProjectDetailPage({
 
           </div>
         </section>
+
+        <VideoEmbed source={project.video} title={project.title} />
 
       </div>
     </main>

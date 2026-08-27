@@ -1,19 +1,47 @@
 
-import Link from "next/link"
-import { getAllPosts } from "@/lib/posts"
+import Link from "next/link";
+import Image from "next/image";
+import { getAllPosts } from "@/lib/posts";
+
+function getImagePath(image?: string) {
+  if (!image) return null;
+
+  const value = image.trim();
+
+  if (!value) return null;
+
+  // Already a public URL/path
+  if (
+    value.startsWith("/") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+
+  // If someone accidentally saved "public/..."
+  if (value.startsWith("public/")) {
+    return `/${value.slice(7)}`;
+  }
+
+  // Otherwise assume it belongs in /images/blog/
+  return `/images/blog/${value}`;
+}
 
 export default async function BlogIndex() {
-  const posts = await getAllPosts()
+  const posts = getAllPosts();
 
-  const featuredPost = posts[0]
-  const secondaryPosts = posts.slice(1, 4)
-  const remainingPosts = posts.slice(4)
+  const featuredPost = posts[0];
+  const secondaryPosts = posts.slice(1, 4);
 
   return (
     <main className="mainpage">
       <div className="mx-auto w-full max-w-7xl px-6 py-16 md:px-[100px] md:py-24">
 
-        {/* Header */}
+        {/* =====================================================
+            BLOG HEADER
+        ====================================================== */}
+
         <header className="mb-16">
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
             Blog Post
@@ -30,7 +58,10 @@ export default async function BlogIndex() {
         </header>
 
 
-        {/* Featured Post */}
+        {/* =====================================================
+            FEATURED POST
+        ====================================================== */}
+
         {featuredPost && (
           <section className="mb-24">
             <Link
@@ -40,12 +71,30 @@ export default async function BlogIndex() {
               <article className="grid overflow-hidden rounded-3xl bg-neutral-100 md:grid-cols-2">
 
                 {/* Image */}
-                <div className="aspect-[4/3] bg-neutral-200 transition-transform duration-500 group-hover:scale-[1.02] md:aspect-auto">
-                  {/* Add your post image here */}
+
+                <div className="relative aspect-[4/3] overflow-hidden bg-neutral-200 md:aspect-auto">
+                  {getImagePath(featuredPost.image) ? (
+                    <Image
+                      src={getImagePath(featuredPost.image)!}
+                      alt={featuredPost.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full min-h-[300px] w-full items-center justify-center bg-neutral-200">
+                      <span className="text-sm text-neutral-400">
+                        No image
+                      </span>
+                    </div>
+                  )}
                 </div>
 
+
                 {/* Content */}
+
                 <div className="flex flex-col justify-center p-8 md:p-12 lg:p-16">
+
                   <p className="mb-4 text-sm font-medium uppercase tracking-wider text-neutral-500">
                     Featured Article
                   </p>
@@ -66,10 +115,12 @@ export default async function BlogIndex() {
 
                   <span className="mt-8 inline-flex items-center text-sm font-semibold">
                     Read article
+
                     <span className="ml-2 transition-transform group-hover:translate-x-1">
                       →
                     </span>
                   </span>
+
                 </div>
 
               </article>
@@ -78,67 +129,109 @@ export default async function BlogIndex() {
         )}
 
 
-        {/* Featured Articles */}
+        {/* =====================================================
+            MORE TO EXPLORE
+        ====================================================== */}
+
         {secondaryPosts.length > 0 && (
           <section className="mb-24">
 
-            <div className="mb-10 flex items-end justify-between">
-              <div>
-                <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
-                  Featured
-                </p>
+            <div className="mb-10">
+              <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
+                Featured
+              </p>
 
-                <h2 className="text-3xl font-bold md:text-4xl">
-                  More to explore
-                </h2>
-              </div>
+              <h2 className="text-3xl font-bold md:text-4xl">
+                More to explore
+              </h2>
             </div>
 
+
             <div className="grid gap-8 md:grid-cols-3">
-              {secondaryPosts.map((post) => (
-                <Link
-                  key={post.slug}
-                  href={`/blog/${post.slug}`}
-                  className="group"
-                >
-                  <article>
 
-                    {/* Image */}
-                    <div className="mb-6 aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-100">
-                      <div className="h-full w-full bg-neutral-200 transition-transform duration-500 group-hover:scale-105" />
-                    </div>
+              {secondaryPosts.map((post) => {
+                const imagePath = getImagePath(post.image);
 
-                    <p className="mb-3 text-sm text-neutral-500">
-                      {post.date}
-                    </p>
+                return (
+                  <Link
+                    key={post.slug}
+                    href={`/blog/${post.slug}`}
+                    className="group"
+                  >
+                    <article>
 
-                    <h3 className="text-2xl font-semibold leading-tight tracking-tight transition-colors group-hover:text-neutral-500">
-                      {post.title}
-                    </h3>
+                      {/* Image */}
 
-                    {post.subheading && (
-                      <p className="mt-3 line-clamp-3 leading-7 text-neutral-500">
-                        {post.subheading}
+                      <div className="relative mb-6 aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-100">
+
+                        {imagePath ? (
+                          <Image
+                            src={imagePath}
+                            alt={post.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-neutral-200">
+                            <span className="text-sm text-neutral-400">
+                              No image
+                            </span>
+                          </div>
+                        )}
+
+                      </div>
+
+
+                      {/* Date */}
+
+                      <p className="mb-3 text-sm text-neutral-500">
+                        {post.date}
                       </p>
-                    )}
 
-                    <div className="mt-5 text-sm font-semibold">
-                      Read article →
-                    </div>
 
-                  </article>
-                </Link>
-              ))}
+                      {/* Title */}
+
+                      <h3 className="text-2xl font-semibold leading-tight tracking-tight transition-colors group-hover:text-neutral-500">
+                        {post.title}
+                      </h3>
+
+
+                      {/* Excerpt */}
+
+                      {post.subheading && (
+                        <p className="mt-3 line-clamp-3 leading-7 text-neutral-500">
+                          {post.subheading}
+                        </p>
+                      )}
+
+
+                      {/* Read */}
+
+                      <div className="mt-5 text-sm font-semibold">
+                        Read article →
+                      </div>
+
+                    </article>
+                  </Link>
+                );
+              })}
+
             </div>
 
           </section>
         )}
 
 
-        {/* All Articles */}
+        {/* =====================================================
+            ALL ARTICLES
+            SHOW EVERY ARTICLE
+        ====================================================== */}
+
         <section>
 
           <div className="mb-10 border-b border-neutral-200 pb-8">
+
             <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
               The Library
             </p>
@@ -146,44 +239,112 @@ export default async function BlogIndex() {
             <h2 className="text-3xl font-bold md:text-4xl">
               All articles
             </h2>
+
+            <p className="mt-3 text-neutral-500">
+              Browse all of my latest articles, ideas, and insights.
+            </p>
+
           </div>
 
-          <div className="divide-y divide-neutral-200">
-            {remainingPosts.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="group block"
-              >
-                <article className="grid gap-4 py-8 md:grid-cols-[1fr_160px]">
 
-                  <div>
-                    <h3 className="text-xl font-semibold transition-colors group-hover:text-neutral-500 md:text-2xl">
-                      {post.title}
-                    </h3>
+          {/* =================================================
+              ALL POSTS
+          ================================================== */}
 
-                    {post.subheading && (
-                      <p className="mt-2 max-w-2xl leading-7 text-neutral-500">
-                        {post.subheading}
-                      </p>
-                    )}
-                  </div>
+          {posts.length > 0 ? (
 
-                  <div className="text-left md:text-right">
-                    <p className="text-sm text-neutral-500">
-                      {post.date}
-                    </p>
-                  </div>
+            <div className="divide-y divide-neutral-200">
 
-                </article>
-              </Link>
-            ))}
-          </div>
+              {posts.map((post) => {
+                const imagePath = getImagePath(post.image);
+
+                return (
+                  <Link
+                    key={post.slug}
+                    href={`/blog/${post.slug}`}
+                    className="group block"
+                  >
+
+                    <article className="grid gap-6 py-8 md:grid-cols-[180px_1fr_auto] md:items-center">
+
+                      {/* Thumbnail */}
+
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-neutral-100">
+
+                        {imagePath ? (
+                          <Image
+                            src={imagePath}
+                            alt={post.title}
+                            fill
+                            sizes="180px"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-neutral-200">
+                            <span className="text-xs text-neutral-400">
+                              No image
+                            </span>
+                          </div>
+                        )}
+
+                      </div>
+
+
+                      {/* Content */}
+
+                      <div>
+
+                        <h3 className="text-xl font-semibold tracking-tight transition-colors group-hover:text-neutral-500 md:text-2xl">
+                          {post.title}
+                        </h3>
+
+                        {post.subheading && (
+                          <p className="mt-2 max-w-2xl leading-7 text-neutral-500">
+                            {post.subheading}
+                          </p>
+                        )}
+
+                      </div>
+
+
+                      {/* Date */}
+
+                      <div className="text-left md:text-right">
+
+                        <p className="text-sm text-neutral-500">
+                          {post.date}
+                        </p>
+
+                        <p className="mt-2 text-sm font-semibold opacity-0 transition-opacity group-hover:opacity-100">
+                          Read →
+                        </p>
+
+                      </div>
+
+                    </article>
+
+                  </Link>
+                );
+              })}
+
+            </div>
+
+          ) : (
+
+            <div className="rounded-2xl border border-neutral-200 py-16 text-center">
+
+              <p className="text-sm text-neutral-500">
+                No articles yet.
+              </p>
+
+            </div>
+
+          )}
 
         </section>
 
       </div>
     </main>
-  )
+  );
 }
 

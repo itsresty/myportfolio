@@ -4,9 +4,16 @@ import {
   CalendarDays,
   Clock3,
   Mail,
-  MessageSquare,
   Check,
 } from "lucide-react";
+import ScheduleCalendar from "@/components/ScheduleCalendar";
+import ContactInquiryForm from "@/components/contact-inquiry-form";
+
+const CONTACT_EMAIL = "restymontero0@gmail.com";
+const GMAIL_COMPOSE_URL = `https://mail.google.com/mail/?view=cm&fs=1&to=${CONTACT_EMAIL}`;
+const BOOKING_URL =
+  process.env.NEXT_PUBLIC_CALENDAR_BOOKING_URL ??
+  "https://calendly.com/restymontero0/30min";
 
 const contactOptions = [
   {
@@ -22,7 +29,7 @@ const contactOptions = [
     title: "Send an email",
     description:
       "Have a question or prefer email? Send me a message directly and I'll get back to you.",
-    href: "mailto:hello@example.com",
+    href: GMAIL_COMPOSE_URL,
     action: "Email me",
   },
 ];
@@ -75,7 +82,6 @@ export default function ContactPage() {
             </p>
           </div>
 
-
           <div className="grid gap-6 md:grid-cols-2">
 
             {contactOptions.map((option) => {
@@ -103,7 +109,6 @@ export default function ContactPage() {
                     />
 
                   </div>
-
 
                   <h2 className="mt-10 text-2xl font-semibold tracking-tight">
                     {option.title}
@@ -137,6 +142,7 @@ export default function ContactPage() {
           <div className="mb-10 flex flex-col justify-between gap-5 border-b border-neutral-200 pb-5 md:flex-row md:items-end">
 
             <div>
+
               <p className="text-sm font-medium uppercase tracking-[0.15em] text-neutral-500">
                 Schedule a call
               </p>
@@ -144,29 +150,37 @@ export default function ContactPage() {
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] md:text-4xl">
                 Find a time that works for you.
               </h2>
+
             </div>
 
             <div className="flex items-center gap-2 text-sm text-neutral-500">
+
               <Clock3 size={16} />
+
               <span>30 minute call</span>
+
             </div>
 
           </div>
 
 
           {/* Calendar Area */}
+          {BOOKING_URL ? (
+            <ScheduleCalendar bookingUrl={BOOKING_URL} />
+          ) : (
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
 
-            {/* Temporary Calendar Placeholder */}
             <div className="grid min-h-[500px] place-items-center p-8">
 
               <div className="max-w-md text-center">
 
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
+
                   <CalendarDays
                     size={24}
                     strokeWidth={1.6}
                   />
+
                 </div>
 
                 <h3 className="mt-6 text-2xl font-semibold">
@@ -174,23 +188,23 @@ export default function ContactPage() {
                 </h3>
 
                 <p className="mt-3 leading-7 text-neutral-500">
-                  Select a date and time that works for you. Once connected
-                  to your scheduling service, your real-time availability
-                  will appear here.
+                  My live booking calendar will appear here. In the meantime,
+                  send me an email and I&apos;ll arrange a time with you directly.
                 </p>
 
-                <button
-                  type="button"
+                <a
+                  href={`${GMAIL_COMPOSE_URL}&su=Schedule%20a%20call`}
                   className="mt-7 rounded-full bg-black px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-80"
                 >
-                  View available times
-                </button>
+                  Email to schedule
+                </a>
 
               </div>
 
             </div>
 
           </div>
+          )}
 
           <p className="mt-4 text-xs text-neutral-400">
             Calls are scheduled based on my current availability and
@@ -226,164 +240,7 @@ export default function ContactPage() {
             </div>
 
 
-            {/* Form */}
-            <form className="space-y-8">
-
-              {/* Name */}
-              <div>
-                <label
-                  htmlFor="name"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Name
-                </label>
-
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Your name"
-                  className="w-full border-b border-neutral-300 bg-transparent px-0 py-3 text-base outline-none transition-colors placeholder:text-neutral-400 focus:border-black"
-                />
-              </div>
-
-
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Email
-                </label>
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  className="w-full border-b border-neutral-300 bg-transparent px-0 py-3 text-base outline-none transition-colors placeholder:text-neutral-400 focus:border-black"
-                />
-              </div>
-
-
-              {/* Service */}
-              <div>
-                <label
-                  htmlFor="service"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  What do you need help with?
-                </label>
-
-                <select
-                  id="service"
-                  name="service"
-                  defaultValue=""
-                  className="w-full border-b border-neutral-300 bg-transparent px-0 py-3 text-base outline-none focus:border-black"
-                >
-                  <option value="" disabled>
-                    Select a service
-                  </option>
-
-                  <option value="web-development">
-                    Web Development
-                  </option>
-
-                  <option value="video-editing">
-                    Video Editing
-                  </option>
-
-                  <option value="virtual-assistant">
-                    Virtual Assistant
-                  </option>
-
-                  <option value="ui-design">
-                    UI & Web Design
-                  </option>
-
-                  <option value="other">
-                    Other
-                  </option>
-                </select>
-              </div>
-
-
-              {/* Budget */}
-              <div>
-                <label
-                  htmlFor="budget"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Estimated budget
-                </label>
-
-                <select
-                  id="budget"
-                  name="budget"
-                  defaultValue=""
-                  className="w-full border-b border-neutral-300 bg-transparent px-0 py-3 text-base outline-none focus:border-black"
-                >
-                  <option value="" disabled>
-                    Select a range
-                  </option>
-
-                  <option value="under-500">
-                    Under €500
-                  </option>
-
-                  <option value="500-1000">
-                    €500 – €1,000
-                  </option>
-
-                  <option value="1000-2500">
-                    €1,000 – €2,500
-                  </option>
-
-                  <option value="2500-plus">
-                    €2,500+
-                  </option>
-
-                  <option value="not-sure">
-                    Not sure yet
-                  </option>
-                </select>
-              </div>
-
-
-              {/* Message */}
-              <div>
-                <label
-                  htmlFor="message"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Tell me about your project
-                </label>
-
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  placeholder="What are you looking to build or accomplish?"
-                  className="w-full resize-none border-b border-neutral-300 bg-transparent px-0 py-3 text-base outline-none transition-colors placeholder:text-neutral-400 focus:border-black"
-                />
-              </div>
-
-
-              {/* Submit */}
-              <button
-                type="submit"
-                className="group inline-flex items-center gap-3 rounded-full bg-black px-7 py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-80"
-              >
-                Send inquiry
-
-                <ArrowUpRight
-                  size={17}
-                  className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
-                />
-              </button>
-
-            </form>
+            <ContactInquiryForm />
 
           </div>
 
@@ -398,6 +255,7 @@ export default function ContactPage() {
           <div className="grid gap-12 md:grid-cols-[1fr_2fr]">
 
             <div>
+
               <p className="text-sm font-medium uppercase tracking-[0.15em] text-neutral-500">
                 What happens next
               </p>
@@ -405,12 +263,14 @@ export default function ContactPage() {
               <h2 className="mt-4 text-3xl font-bold tracking-[-0.03em] md:text-4xl">
                 A simple process.
               </h2>
+
             </div>
 
 
             <div className="space-y-8">
 
               {expectations.map((item, index) => (
+
                 <div
                   key={item}
                   className="flex gap-5 border-t border-neutral-200 pt-6"
@@ -434,6 +294,7 @@ export default function ContactPage() {
                   </div>
 
                 </div>
+
               ))}
 
             </div>
@@ -457,21 +318,23 @@ export default function ContactPage() {
               </p>
 
               <h2 className="text-3xl font-bold tracking-[-0.03em] md:text-4xl">
-                hello@example.com
+                {CONTACT_EMAIL}
               </h2>
 
             </div>
 
             <a
-              href="mailto:hello@example.com"
+              href={GMAIL_COMPOSE_URL}
               className="group inline-flex items-center gap-3 text-sm font-medium"
             >
+
               Send an email
 
               <ArrowUpRight
                 size={17}
                 className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
               />
+
             </a>
 
           </div>

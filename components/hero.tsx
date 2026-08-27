@@ -32,7 +32,7 @@ const services = [
   },
 ];
 
-export default function Hero() {
+export default function Hero({ availableForWork = true }: { availableForWork?: boolean }) {
   return (
     <section className="relative w-full overflow-hidden">
 
@@ -61,7 +61,7 @@ export default function Hero() {
 
             {/* Availability */}
 
-            <Availability available={true} />
+            <Availability available={availableForWork} />
 
 
             {/* Intro */}

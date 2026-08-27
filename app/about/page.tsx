@@ -4,7 +4,6 @@ import {
   Code2,
   Film,
   Headphones,
-  Layers3,
   MapPin,
   Palette,
   Settings2,
@@ -209,21 +208,18 @@ export default function AboutPage() {
 
                 <span className="h-px w-8 bg-black" />
 
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500 md:text-sm">
                   About me
                 </p>
 
               </div>
 
               <h1 className="max-w-5xl text-5xl font-semibold leading-[0.9] tracking-[-0.06em] md:text-7xl lg:text-[86px]">
-
                 Building things
                 <br />
-
                 <span className="text-neutral-400">
                   with purpose.
                 </span>
-
               </h1>
 
             </div>
@@ -241,7 +237,7 @@ export default function AboutPage() {
                   className="text-neutral-500"
                 />
 
-                <span className="text-xs font-medium uppercase tracking-[0.15em] text-neutral-500">
+                <span className="text-xs font-medium uppercase tracking-[0.15em] text-neutral-500 md:text-sm">
                   Madrid, Spain
                 </span>
 
@@ -264,11 +260,11 @@ export default function AboutPage() {
 
             <div className="border-b border-neutral-200 py-6 sm:border-b-0 sm:border-r sm:pr-8">
 
-              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400 md:text-xs">
                 Based in
               </p>
 
-              <p className="mt-2 text-sm font-medium">
+              <p className="mt-2 text-sm font-medium md:text-base">
                 Madrid, Spain
               </p>
 
@@ -277,11 +273,11 @@ export default function AboutPage() {
 
             <div className="border-b border-neutral-200 py-6 sm:border-b-0 sm:border-r sm:px-8">
 
-              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400 md:text-xs">
                 Working across
               </p>
 
-              <p className="mt-2 text-sm font-medium">
+              <p className="mt-2 text-sm font-medium md:text-base">
                 Development · Creative · Support
               </p>
 
@@ -290,11 +286,11 @@ export default function AboutPage() {
 
             <div className="py-6 sm:pl-8">
 
-              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400 md:text-xs">
                 Availability
               </p>
 
-              <p className="mt-2 flex items-center gap-2 text-sm font-medium">
+              <p className="mt-2 flex items-center gap-2 text-sm font-medium md:text-base">
 
                 <span className="h-2 w-2 rounded-full bg-green-500" />
 
@@ -323,7 +319,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400 md:text-sm">
                 My story
               </p>
 
@@ -388,7 +384,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400 md:text-sm">
                 What I do
               </p>
 
@@ -403,7 +399,7 @@ export default function AboutPage() {
 
             <Link
               href="/services"
-              className="group flex w-fit items-center gap-2 text-sm font-medium"
+              className="group flex w-fit items-center gap-2 text-sm font-medium md:text-base"
             >
               Explore services
 
@@ -432,7 +428,7 @@ export default function AboutPage() {
 
                   <div className="flex items-start justify-between md:block">
 
-                    <span className="text-xs tracking-[0.15em] text-neutral-400">
+                    <span className="text-xs tracking-[0.15em] text-neutral-400 md:text-sm">
                       {item.number}
                     </span>
 
@@ -451,7 +447,7 @@ export default function AboutPage() {
                       {item.title}
                     </h3>
 
-                    <p className="mt-4 max-w-md text-sm leading-7 text-neutral-500">
+                    <p className="mt-4 max-w-md text-sm leading-7 text-neutral-500 md:text-base md:leading-8">
                       {item.description}
                     </p>
 
@@ -460,7 +456,7 @@ export default function AboutPage() {
 
                   <div>
 
-                    <p className="mb-5 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+                    <p className="mb-5 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400 md:text-xs">
                       Skills & capabilities
                     </p>
 
@@ -469,7 +465,7 @@ export default function AboutPage() {
                       {item.skills.map((skill) => (
                         <span
                           key={skill}
-                          className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-600 transition-all duration-300 hover:border-black hover:bg-black hover:text-white"
+                          className="rounded-full border border-neutral-200 px-3 py-2 text-xs text-neutral-600 transition-all duration-300 hover:border-black hover:bg-black hover:text-white md:px-3.5 md:py-2.5 md:text-sm"
                         >
                           {skill}
                         </span>
@@ -511,7 +507,7 @@ export default function AboutPage() {
 
               </div>
 
-              <p className="mt-6 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+              <p className="mt-6 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400 md:text-sm">
                 How I think
               </p>
 
@@ -530,15 +526,15 @@ export default function AboutPage() {
                   className="border-b border-neutral-200 py-8 sm:px-8"
                 >
 
-                  <span className="text-xs tracking-[0.15em] text-neutral-400">
+                  <span className="text-xs tracking-[0.15em] text-neutral-400 md:text-sm">
                     {item.number}
                   </span>
 
-                  <h3 className="mt-5 text-lg font-semibold">
+                  <h3 className="mt-5 text-lg font-semibold md:text-xl">
                     {item.title}
                   </h3>
 
-                  <p className="mt-3 text-sm leading-7 text-neutral-500">
+                  <p className="mt-3 text-sm leading-7 text-neutral-500 md:text-base md:leading-8">
                     {item.description}
                   </p>
 
@@ -568,7 +564,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400 md:text-sm">
                 Skills & tools
               </p>
 
@@ -582,7 +578,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="max-w-2xl text-sm leading-7 text-neutral-500 md:text-base">
+              <p className="max-w-2xl text-sm leading-7 text-neutral-500 md:text-base md:leading-8">
                 I work across development, design, content, and digital
                 support. Rather than relying on one tool for everything, I
                 choose the technologies and workflows that make sense for
@@ -598,9 +594,6 @@ export default function AboutPage() {
 
           <div className="mt-16 grid border-t border-neutral-200 md:grid-cols-2">
 
-
-            {/* Development */}
-
             <SkillCategory
               number="01"
               title="Development"
@@ -610,9 +603,6 @@ export default function AboutPage() {
               borderRight
             />
 
-
-            {/* Design */}
-
             <SkillCategory
               number="02"
               title="UI & Design"
@@ -620,9 +610,6 @@ export default function AboutPage() {
               description="Designing clean and consistent interfaces with attention to typography, spacing, hierarchy, accessibility, responsiveness, and overall user experience."
               skills={designSkills}
             />
-
-
-            {/* Video */}
 
             <SkillCategory
               number="03"
@@ -633,9 +620,6 @@ export default function AboutPage() {
               borderRight
             />
 
-
-            {/* Digital Support */}
-
             <SkillCategory
               number="04"
               title="Digital Support"
@@ -643,9 +627,6 @@ export default function AboutPage() {
               description="Supporting businesses and individuals with everyday digital tasks, organization, research, content management, and administrative workflows."
               skills={supportSkills}
             />
-
-
-            {/* Workflow */}
 
             <SkillCategory
               number="05"
@@ -655,9 +636,6 @@ export default function AboutPage() {
               skills={workflowSkills}
               borderRight
             />
-
-
-            {/* Learning */}
 
             <SkillCategory
               number="06"
@@ -676,7 +654,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/40">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/40 md:text-sm">
                 More than a toolbox
               </p>
 
@@ -685,7 +663,7 @@ export default function AboutPage() {
                 problem.
               </h3>
 
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/50">
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/50 md:text-base md:leading-8">
                 My goal is not to use the most complicated technology.
                 It is to choose the right approach, create something
                 useful, and make the final experience feel simple.
@@ -696,7 +674,7 @@ export default function AboutPage() {
 
             <Link
               href="/services"
-              className="group flex w-fit items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition-transform duration-300 hover:scale-[1.02]"
+              className="group flex w-fit items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition-transform duration-300 hover:scale-[1.02] md:text-base"
             >
               Explore my services
 
@@ -727,7 +705,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400 md:text-sm">
                 Currently exploring
               </p>
 
@@ -740,7 +718,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="max-w-2xl text-sm leading-7 text-neutral-500 md:text-base">
+              <p className="max-w-2xl text-sm leading-7 text-neutral-500 md:text-base md:leading-8">
                 I like experimenting with new technologies, improving my
                 development workflow, exploring better design approaches,
                 and finding new ways to create useful digital products.
@@ -755,11 +733,11 @@ export default function AboutPage() {
                     className="flex items-center justify-between border-b border-neutral-200 py-5 sm:px-5"
                   >
 
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium md:text-base">
                       {interest}
                     </span>
 
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-neutral-400 md:text-sm">
                       {String(index + 1).padStart(2, "0")}
                     </span>
 
@@ -787,7 +765,7 @@ export default function AboutPage() {
 
           <div className="max-w-4xl">
 
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400 md:text-sm">
               Beyond the screen
             </p>
 
@@ -795,7 +773,7 @@ export default function AboutPage() {
               I&apos;m interested in more than just technology.
             </h2>
 
-            <div className="mt-8 grid gap-6 text-sm leading-7 text-neutral-500 md:grid-cols-2">
+            <div className="mt-8 grid gap-6 text-sm leading-7 text-neutral-500 md:grid-cols-2 md:text-base md:leading-8">
 
               <p>
                 Creativity, culture, travel, design, and everyday
@@ -829,8 +807,6 @@ export default function AboutPage() {
 
           <div className="relative overflow-hidden rounded-[2rem] bg-black px-7 py-16 text-white md:px-14 md:py-24">
 
-            {/* Decorative circles */}
-
             <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full border border-white/10" />
 
             <div className="pointer-events-none absolute -right-10 top-20 h-56 w-56 rounded-full border border-white/10" />
@@ -838,7 +814,7 @@ export default function AboutPage() {
 
             <div className="relative max-w-4xl">
 
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/40">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/40 md:text-sm">
                 A simple belief
               </p>
 
@@ -847,7 +823,7 @@ export default function AboutPage() {
                 purposeful.
               </h2>
 
-              <p className="mt-7 max-w-2xl text-sm leading-7 text-white/50 md:text-base">
+              <p className="mt-7 max-w-2xl text-sm leading-7 text-white/50 md:text-base md:leading-8">
                 That is the kind of work I want to keep creating — work
                 that solves a problem, communicates clearly, and leaves
                 people with a better experience.
@@ -874,7 +850,7 @@ export default function AboutPage() {
 
             <div>
 
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400 md:text-sm">
                 Let&apos;s work together
               </p>
 
@@ -884,7 +860,7 @@ export default function AboutPage() {
                 Let&apos;s build it.
               </h2>
 
-              <p className="mt-5 max-w-xl text-sm leading-7 text-neutral-500">
+              <p className="mt-5 max-w-xl text-sm leading-7 text-neutral-500 md:text-base md:leading-8">
                 Whether you need a website, video editing, or digital
                 support, I&apos;d love to hear what you&apos;re working on.
               </p>
@@ -951,11 +927,11 @@ function SkillCategory({
 
         <div>
 
-          <span className="text-xs tracking-[0.15em] text-neutral-400">
+          <span className="text-xs tracking-[0.15em] text-neutral-400 md:text-sm">
             {number}
           </span>
 
-          <h3 className="mt-5 text-2xl font-semibold tracking-[-0.03em]">
+          <h3 className="mt-5 text-2xl font-semibold tracking-[-0.03em] md:text-3xl">
             {title}
           </h3>
 
@@ -970,7 +946,7 @@ function SkillCategory({
 
       {/* Description */}
 
-      <p className="mt-5 max-w-md text-sm leading-7 text-neutral-500">
+      <p className="mt-5 max-w-md text-sm leading-7 text-neutral-500 md:text-base md:leading-8">
         {description}
       </p>
 
@@ -979,7 +955,7 @@ function SkillCategory({
 
       <div className="mt-8">
 
-        <p className="mb-5 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+        <p className="mb-5 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400 md:text-xs">
           Skills & capabilities
         </p>
 
@@ -988,7 +964,7 @@ function SkillCategory({
           {skills.map((skill) => (
             <span
               key={skill}
-              className="rounded-full border border-neutral-200 px-3.5 py-2 text-xs text-neutral-600 transition-all duration-300 hover:border-black hover:bg-black hover:text-white"
+              className="rounded-full border border-neutral-200 px-3.5 py-2 text-xs text-neutral-600 transition-all duration-300 hover:border-black hover:bg-black hover:text-white md:px-3.5 md:py-2.5 md:text-sm"
             >
               {skill}
             </span>

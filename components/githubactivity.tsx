@@ -3,10 +3,10 @@
 import { GitHubCalendar } from "react-github-calendar";
 import { useState } from "react";
 
-const years = [2026, 2025, 2024, 2023, 2022, 2021, 2020];
+const years = [2025, 2026];
 
 export default function GithubActivity() {
-  const [year, setYear] = useState(2026);
+  const [year, setYear] = useState(2025);
 
   return (
     <section className="w-full">
@@ -71,11 +71,11 @@ export default function GithubActivity() {
 
         {/* Scrollable Calendar */}
         <div className="w-full overflow-x-auto">
-          <div className="min-w-[680px] px-4 py-7 sm:min-w-[720px] sm:px-6">
+          <div className="min-w-[760px] px-5 py-8 sm:min-w-[800px] sm:px-7">
             <GitHubCalendar
               username="itsresty"
               year={year}
-              blockSize={10}
+              blockSize={12}
               blockMargin={3}
               fontSize={11}
               showWeekdayLabels

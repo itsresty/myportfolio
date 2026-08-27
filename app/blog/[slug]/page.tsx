@@ -2,12 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getAllSlugs } from "@/lib/posts";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
-
-const BLOG_DIR = path.join(process.cwd(), "content", "blog");
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { getAllSlugs, getPostBySlug } from "@/lib/posts";
+import VideoEmbed from "@/components/video-embed";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({
@@ -16,26 +14,9 @@ export function generateStaticParams() {
 }
 
 async function loadPost(slug: string) {
-  const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
-
-  if (!fs.existsSync(filePath)) {
-    return null;
-  }
-
-  const source = fs.readFileSync(filePath, "utf8");
-  const { data } = matter(source);
-
-  try {
-    const mod = await import(`@/content/blog/${slug}.mdx`);
-
-    return {
-      Content: mod.default,
-      metadata: data,
-    };
-  } catch (error) {
-    console.error("Error loading MDX:", error);
-    return null;
-  }
+  const post = getPostBySlug(slug);
+  if (!post || post.status === "draft") return null;
+  return { metadata: post, content: post.body ?? "" };
 }
 
 export async function generateMetadata({
@@ -70,7 +51,7 @@ export default async function BlogPost({
     notFound();
   }
 
-  const { Content, metadata } = post;
+  const { metadata, content } = post;
 
   return (
     <main className="mainpage w-full">
@@ -265,8 +246,10 @@ export default async function BlogPost({
               prose-img:border-neutral-200
             "
           >
-            <Content />
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           </div>
+
+          <VideoEmbed source={metadata.video} title={metadata.title} />
 
         </div>
 

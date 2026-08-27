@@ -73,7 +73,7 @@ export default function Footer() {
               {/* Email */}
 
               <a
-                href="mailto:hello@example.com"
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=restymontero0@gmail.com"
                 className="group mt-7 inline-flex items-center gap-3 text-sm font-medium"
               >
 
@@ -85,7 +85,7 @@ export default function Footer() {
                 </span>
 
                 <span>
-                  hello@example.com
+                  restymontero0@gmail.com
                 </span>
 
                 <ArrowUpRight

@@ -1,16 +1,21 @@
+
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { getRecentPosts } from "@/lib/posts";
 import PostCard from "@/components/blogs-post-card";
 
-export default async function RecentBlog() {
-  const recentPosts = await getRecentPosts(3);
+export default function RecentBlog() {
+  // Fetch the 3 newest published articles
+  const recentPosts = getRecentPosts(3);
 
   return (
     <section className="w-full border-t border-neutral-200 py-20 md:py-24">
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
 
-        {/* Header */}
+        {/* =====================================================
+            HEADER
+        ====================================================== */}
+
         <div className="mb-10 flex items-end justify-between">
           <div>
             <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
@@ -22,12 +27,16 @@ export default async function RecentBlog() {
             </h2>
           </div>
 
-          {/* Desktop */}
+
+          {/* =================================================
+              DESKTOP VIEW ALL
+          ================================================== */}
+
           <Link
             href="/blog"
             className="group hidden items-center gap-2 text-sm font-medium md:flex"
           >
-            View all articles
+            <span>View all articles</span>
 
             <ArrowUpRight
               size={15}
@@ -37,7 +46,11 @@ export default async function RecentBlog() {
           </Link>
         </div>
 
-        {/* Blog Posts */}
+
+        {/* =====================================================
+            RECENT POSTS
+        ====================================================== */}
+
         {recentPosts.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {recentPosts.map((post) => (
@@ -55,12 +68,16 @@ export default async function RecentBlog() {
           </div>
         )}
 
-        {/* Mobile */}
+
+        {/* =====================================================
+            MOBILE VIEW ALL
+        ====================================================== */}
+
         <Link
           href="/blog"
           className="group mt-8 inline-flex items-center gap-2 text-sm font-medium md:hidden"
         >
-          View all articles
+          <span>View all articles</span>
 
           <ArrowUpRight
             size={15}
@@ -73,3 +90,4 @@ export default async function RecentBlog() {
     </section>
   );
 }
+

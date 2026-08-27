@@ -24,33 +24,20 @@ export default async function ProjectsPage() {
       project.category === "Web Design"
   );
 
-  const videos = [
-    {
-      title: "Creative Short",
-      category: "Video Editing",
-      image: "/projects/video-1.jpg",
-    },
-    {
-      title: "Social Media Edit",
-      category: "Short Form",
-      image: "/projects/video-2.jpg",
-    },
-    {
-      title: "Visual Story",
-      category: "Content",
-      image: "/projects/video-3.jpg",
-    },
-    {
-      title: "Motion Experiment",
-      category: "Motion",
-      image: "/projects/video-4.jpg",
-    },
-    {
-      title: "Creative Campaign",
-      category: "Content",
-      image: "/projects/video-5.jpg",
-    },
-  ];
+  const videos = projects
+    .filter(
+      (project) =>
+        project.category === "Video Editing" ||
+        project.category === "Video" ||
+        Boolean(project.video)
+    )
+    .filter((project) => Boolean(project.image))
+    .map((project) => ({
+      title: project.title,
+      category: project.category,
+      image: project.image as string,
+      href: `/project/${project.slug}`,
+    }));
 
   return (
     <main className="mainpage w-full">
@@ -133,6 +120,7 @@ export default async function ProjectsPage() {
             VIDEO EDITING
         ====================================================== */}
 
+        {videos.length > 0 && (
         <section className="border-b border-neutral-200 py-20 md:py-28">
 
           {/* Section Header */}
@@ -180,7 +168,7 @@ export default async function ProjectsPage() {
             {/* Featured Video */}
 
             <Link
-              href="#"
+              href={videos[0].href}
               className="group md:row-span-2"
             >
               <article>
@@ -260,7 +248,7 @@ export default async function ProjectsPage() {
 
               {videos.slice(1, 3).map((video, index) => (
                 <Link
-                  href="#"
+                  href={video.href}
                   key={video.title}
                   className="group"
                 >
@@ -320,7 +308,7 @@ export default async function ProjectsPage() {
 
             {videos.slice(3).map((video, index) => (
               <Link
-                href="#"
+                href={video.href}
                 key={video.title}
                 className="group"
               >
@@ -391,6 +379,7 @@ export default async function ProjectsPage() {
           </div>
 
         </section>
+        )}
 
 
         {/* =====================================================
