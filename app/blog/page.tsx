@@ -29,7 +29,7 @@ function getImagePath(image?: string) {
 }
 
 export default async function BlogIndex() {
-  const posts = getAllPosts();
+  const posts = await getAllPosts();
 
   const featuredPost = posts[0];
   const secondaryPosts = posts.slice(1, 4);
@@ -347,4 +347,3 @@ export default async function BlogIndex() {
     </main>
   );
 }
-

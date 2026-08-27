@@ -12,6 +12,15 @@ const nextConfig = {
       bodySizeLimit: '100mb',
     },
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ntstxmpgewwiypjggtdj.supabase.co',
+        pathname: '/storage/v1/object/public/portfolio/**',
+      },
+    ],
+  },
 }
 
 const withMDX = createMDX({

@@ -6,7 +6,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 
 export default async function AdminAnalyticsPage() {
   await requireAdmin();
-  const posts = getAllPosts({ includeDrafts: true });
+  const posts = await getAllPosts({ includeDrafts: true });
   const projects = await getAllProjects();
   const { availableForWork } = await getSiteSettings();
   const publishedPosts = posts.filter((post) => post.status !== "draft").length;

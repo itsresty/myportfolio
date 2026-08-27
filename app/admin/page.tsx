@@ -24,7 +24,7 @@ import { getViewAnalytics } from "@/lib/view-analytics";
 export default async function AdminPage() {
   await requireAdmin();
 
-  const posts = getAllPosts({ includeDrafts: true });
+  const posts = await getAllPosts({ includeDrafts: true });
   const projects = await getAllProjects();
   const { availableForWork } = await getSiteSettings();
   const viewAnalytics = getViewAnalytics();

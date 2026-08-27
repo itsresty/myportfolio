@@ -4,9 +4,9 @@ import { ArrowUpRight } from "lucide-react";
 import { getRecentPosts } from "@/lib/posts";
 import PostCard from "@/components/blogs-post-card";
 
-export default function RecentBlog() {
+export default async function RecentBlog() {
   // Fetch the 3 newest published articles
-  const recentPosts = getRecentPosts(3);
+  const recentPosts = await getRecentPosts(3);
 
   return (
     <section className="w-full border-t border-neutral-200 py-20 md:py-24">
@@ -90,4 +90,3 @@ export default function RecentBlog() {
     </section>
   );
 }
-

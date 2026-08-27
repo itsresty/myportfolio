@@ -396,7 +396,7 @@ export async function createPostAction(
     const input =
       await postInput(formData);
 
-    const slug = createPost(input);
+    const slug = await createPost(input);
 
     refreshPosts(slug);
 
@@ -441,7 +441,7 @@ export async function updatePostAction(
     const input =
       await postInput(formData);
 
-    const slug = updatePost(
+    const slug = await updatePost(
       previousSlug,
       input
     );
@@ -493,8 +493,8 @@ export async function deletePostAction(
   await requireAdmin();
 
   try {
-    const post = getPostBySlug(slug);
-    deletePost(slug);
+    const post = await getPostBySlug(slug, { includeDrafts: true });
+    await deletePost(slug);
     deleteLocalImage(post?.image);
     deleteLocalImage(post?.video);
 

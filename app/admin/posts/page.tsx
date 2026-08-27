@@ -27,7 +27,7 @@ export default async function AdminPostsPage({
 }) {
   await requireAdmin();
 
-  const posts = getAllPosts({
+  const posts = await getAllPosts({
     includeDrafts: true,
   });
 
@@ -440,4 +440,3 @@ export default async function AdminPostsPage({
     </div>
   );
 }
-

@@ -22,7 +22,7 @@ export default async function EditPostPage({
   const { slug } = await params;
 
   // Find the post.
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug, { includeDrafts: true });
 
   // If the post doesn't exist, show the Next.js 404 page.
   if (!post) {

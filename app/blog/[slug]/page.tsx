@@ -7,14 +7,14 @@ import remarkGfm from "remark-gfm";
 import { getAllSlugs, getPostBySlug } from "@/lib/posts";
 import VideoEmbed from "@/components/video-embed";
 
-export function generateStaticParams() {
-  return getAllSlugs().map((slug) => ({
+export async function generateStaticParams() {
+  return (await getAllSlugs()).map((slug) => ({
     slug,
   }));
 }
 
 async function loadPost(slug: string) {
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
   if (!post || post.status === "draft") return null;
   return { metadata: post, content: post.body ?? "" };
 }

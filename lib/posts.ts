@@ -1,630 +1,122 @@
-
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-const BLOG_DIR = path.join(
-  process.cwd(),
-  "content",
-  "blog"
-);
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabasePublic } from "@/lib/supabase/public";
+import { deletePortfolioFile, uploadPortfolioFile } from "@/lib/supabase/storage";
 
-const BLOG_IMAGE_DIR = path.join(
-  process.cwd(),
-  "public",
-  "images",
-  "blog"
-);
+export type PostStatus = "draft" | "published";
+export type Post = { slug: string; title: string; subheading?: string; author?: string; date: string; image?: string; video?: string; status?: PostStatus; body?: string };
+export type PostInput = Omit<Post, "slug" | "body"> & { body: string; slug?: string };
 
-export type PostStatus =
-  | "draft"
-  | "published";
+type PostRow = { slug: string; title: string; subheading: string | null; author: string | null; date: string; image: string | null; video: string | null; status: PostStatus; body: string };
 
-export type Post = {
-  slug: string;
-  title: string;
-  subheading?: string;
-  author?: string;
-  date: string;
-  image?: string;
-  video?: string;
-  status?: PostStatus;
-  body?: string;
-};
-
-export type PostInput = Omit<
-  Post,
-  "slug" | "body"
-> & {
-  body: string;
-  slug?: string;
-};
-
-/* =========================================================
-   FILE HELPERS
-========================================================= */
-
-function filePath(
-  slug: string,
-  extension = "mdx"
-) {
-  return path.join(
-    BLOG_DIR,
-    `${slug}.${extension}`
-  );
+export function makeSlug(value: string) {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
-function findPostFile(
-  slug: string
-): string | null {
-  const mdxPath = filePath(
-    slug,
-    "mdx"
-  );
+function toPost(row: PostRow): Post {
+  return { slug: row.slug, title: row.title, subheading: row.subheading ?? undefined, author: row.author ?? undefined, date: row.date, image: row.image ?? undefined, video: row.video ?? undefined, status: row.status, body: row.body };
+}
 
-  const mdPath = filePath(
-    slug,
-    "md"
-  );
+function legacyPosts(includeDrafts: boolean): Post[] {
+  try {
+    const dir = path.join(process.cwd(), "content", "blog");
+    return fs.readdirSync(dir).filter((file) => /\.(md|mdx)$/.test(file)).map((file) => {
+      const source = fs.readFileSync(path.join(dir, file), "utf8");
+      const { data, content } = matter(source);
+      return {
+        slug: file.replace(/\.(md|mdx)$/, ""), title: String(data.title ?? ""),
+        subheading: data.subheading ? String(data.subheading) : undefined,
+        author: data.author ? String(data.author) : undefined, date: String(data.date ?? ""),
+        image: data.image ? String(data.image) : undefined, video: data.video ? String(data.video) : undefined,
+        status: data.status === "published" ? "published" : "draft", body: content.trim(),
+      } as Post;
+    }).filter((post) => includeDrafts || post.status === "published")
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } catch { return []; }
+}
 
-  if (fs.existsSync(mdxPath)) {
-    return mdxPath;
+export async function getAllPosts({ includeDrafts = false }: { includeDrafts?: boolean } = {}): Promise<Post[]> {
+  try {
+    const client = includeDrafts ? createSupabaseAdmin() : createSupabasePublic();
+    let query = client.from("posts").select("slug,title,subheading,author,date,image,video,status,body").order("date", { ascending: false });
+    if (!includeDrafts) query = query.eq("status", "published");
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as PostRow[]).map(toPost);
+  } catch (error) {
+    console.error("Supabase post read failed; using bundled post data:", error);
+    return legacyPosts(includeDrafts);
   }
+}
 
-  if (fs.existsSync(mdPath)) {
-    return mdPath;
+export async function getPostBySlug(slug: string, { includeDrafts = false }: { includeDrafts?: boolean } = {}): Promise<Post | null> {
+  const safeSlug = makeSlug(slug);
+  if (!safeSlug) return null;
+  try {
+    const client = includeDrafts ? createSupabaseAdmin() : createSupabasePublic();
+    let query = client.from("posts").select("slug,title,subheading,author,date,image,video,status,body").eq("slug", safeSlug);
+    if (!includeDrafts) query = query.eq("status", "published");
+    const { data, error } = await query.maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? toPost(data as PostRow) : null;
+  } catch (error) {
+    console.error("Supabase post read failed; using bundled post data:", error);
+    return legacyPosts(includeDrafts).find((post) => post.slug === safeSlug) ?? null;
   }
-
-  return null;
 }
 
-/* =========================================================
-   SLUG
-========================================================= */
+export async function getRecentPosts(count = 3): Promise<Post[]> { return (await getAllPosts()).slice(0, count); }
+export async function getAllSlugs(): Promise<string[]> { return (await getAllPosts()).map((post) => post.slug); }
 
-export function makeSlug(
-  value: string
-) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
-/* =========================================================
-   READ POST
-========================================================= */
-
-function readPost(
-  postFilePath: string
-): Post {
-  const source =
-    fs.readFileSync(
-      postFilePath,
-      "utf8"
-    );
-
-  const {
-    data,
-    content,
-  } = matter(source);
-
-  const filename =
-    path.basename(postFilePath);
-
+function values(input: PostInput, slug: string) {
+  const title = input.title.trim(); const body = input.body.trim();
+  if (!title) throw new Error("Post title is required.");
+  if (!body) throw new Error("Post content is required.");
+  if (!input.date) throw new Error("Post date is required.");
   return {
-    slug: filename.replace(
-      /\.(md|mdx)$/,
-      ""
-    ),
-
-    title: String(
-      data.title ?? ""
-    ),
-
-    subheading: data.subheading
-      ? String(data.subheading)
-      : undefined,
-
-    author: data.author
-      ? String(data.author)
-      : undefined,
-
-    date: String(
-      data.date ?? ""
-    ),
-
-    image: data.image
-      ? String(data.image)
-      : undefined,
-
-    video: data.video
-      ? String(data.video)
-      : undefined,
-
-    status:
-      data.status === "published"
-        ? "published"
-        : "draft",
-
-    body: content.trim(),
+    slug, title, body, date: input.date, author: input.author?.trim() || "Resty Montero",
+    subheading: input.subheading?.trim() || null, image: input.image?.trim() || null,
+    video: input.video?.trim() || null, status: input.status === "published" ? "published" : "draft",
+    updated_at: new Date().toISOString(),
   };
 }
 
-/* =========================================================
-   GET ALL POSTS
-========================================================= */
-
-export function getAllPosts(
-  {
-    includeDrafts = false,
-  }: {
-    includeDrafts?: boolean;
-  } = {}
-): Post[] {
-  if (
-    !fs.existsSync(BLOG_DIR)
-  ) {
-    return [];
-  }
-
-  return fs
-    .readdirSync(BLOG_DIR)
-    .filter((file) =>
-      /\.(md|mdx)$/.test(file)
-    )
-    .map((file) =>
-      readPost(
-        path.join(
-          BLOG_DIR,
-          file
-        )
-      )
-    )
-    .filter(
-      (post) =>
-        includeDrafts ||
-        post.status !== "draft"
-    )
-    .sort(
-      (a, b) =>
-        new Date(
-          b.date
-        ).getTime() -
-        new Date(
-          a.date
-        ).getTime()
-    );
+export async function savePostImage(file: File): Promise<string> {
+  if (!file || file.size === 0) throw new Error("No image was selected.");
+  if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) throw new Error("Only JPG, PNG, WEBP, and GIF images are allowed.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("Image must be smaller than 5MB.");
+  return uploadPortfolioFile(file, "posts");
 }
 
-/* =========================================================
-   GET POST BY SLUG
-========================================================= */
+export async function deletePostImage(imagePath?: string) { await deletePortfolioFile(imagePath); }
 
-export function getPostBySlug(
-  slug: string
-): Post | null {
-  const safeSlug =
-    makeSlug(slug);
-
-  if (!safeSlug) {
-    return null;
-  }
-
-  const postFile =
-    findPostFile(safeSlug);
-
-  if (!postFile) {
-    return null;
-  }
-
-  return readPost(postFile);
-}
-
-/* =========================================================
-   RECENT POSTS
-========================================================= */
-
-export function getRecentPosts(
-  count = 3
-): Post[] {
-  return getAllPosts().slice(
-    0,
-    count
-  );
-}
-
-/* =========================================================
-   ALL SLUGS
-========================================================= */
-
-export function getAllSlugs(): string[] {
-  return getAllPosts().map(
-    (post) => post.slug
-  );
-}
-
-/* =========================================================
-   SERIALIZE POST
-========================================================= */
-
-function serializePost(
-  input: PostInput
-) {
-  const title =
-    input.title?.trim();
-
-  const body =
-    input.body?.trim();
-
-  if (!title) {
-    throw new Error(
-      "Post title is required."
-    );
-  }
-
-  if (!body) {
-    throw new Error(
-      "Post content is required."
-    );
-  }
-
-  if (!input.date) {
-    throw new Error(
-      "Post date is required."
-    );
-  }
-
-  const frontmatter: Record<
-    string,
-    string
-  > = {
-    title,
-
-    author:
-      input.author?.trim() ||
-      "Resty Montero",
-
-    date: input.date,
-
-    status:
-      input.status ===
-      "published"
-        ? "published"
-        : "draft",
-  };
-
-  const subheading =
-    input.subheading?.trim();
-
-  if (subheading) {
-    frontmatter.subheading =
-      subheading;
-  }
-
-  const image =
-    input.image?.trim();
-
-  if (image) {
-    frontmatter.image =
-      image;
-  }
-
-  const video = input.video?.trim();
-
-  if (video) {
-    frontmatter.video = video;
-  }
-
-  return matter.stringify(
-    `${body}\n`,
-    frontmatter
-  );
-}
-
-/* =========================================================
-   SAVE LOCAL IMAGE
-========================================================= */
-
-export async function savePostImage(
-  file: File
-): Promise<string> {
-  if (!file || file.size === 0) {
-    throw new Error(
-      "No image was selected."
-    );
-  }
-
-  const allowedTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-  ];
-
-  if (
-    !allowedTypes.includes(
-      file.type
-    )
-  ) {
-    throw new Error(
-      "Only JPG, PNG, WEBP, and GIF images are allowed."
-    );
-  }
-
-  const maxSize =
-    5 * 1024 * 1024;
-
-  if (file.size > maxSize) {
-    throw new Error(
-      "Image must be smaller than 5MB."
-    );
-  }
-
-  fs.mkdirSync(
-    BLOG_IMAGE_DIR,
-    {
-      recursive: true,
-    }
-  );
-
-  const extensionMap: Record<
-    string,
-    string
-  > = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/gif": "gif",
-  };
-
-  const extension =
-    extensionMap[file.type];
-
-  const originalName =
-    file.name
-      .replace(
-        /\.[^/.]+$/,
-        ""
-      )
-      .toLowerCase()
-      .replace(
-        /[^a-z0-9]+/g,
-        "-"
-      )
-      .replace(
-        /^-+|-+$/g,
-        ""
-      )
-      .slice(0, 50);
-
-  const uniqueName =
-    `${originalName || "cover"}-${Date.now()}.${extension}`;
-
-  const destination =
-    path.join(
-      BLOG_IMAGE_DIR,
-      uniqueName
-    );
-
-  const bytes =
-    await file.arrayBuffer();
-
-  const buffer =
-    Buffer.from(bytes);
-
-  await fs.promises.writeFile(
-    destination,
-    buffer
-  );
-
-  return `/images/blog/${uniqueName}`;
-}
-
-/* =========================================================
-   DELETE LOCAL IMAGE
-========================================================= */
-
-export async function deletePostImage(
-  imagePath?: string
-) {
-  if (
-    !imagePath ||
-    !imagePath.startsWith(
-      "/images/blog/"
-    )
-  ) {
-    return;
-  }
-
-  const filename =
-    path.basename(imagePath);
-
-  const imageFile =
-    path.join(
-      BLOG_IMAGE_DIR,
-      filename
-    );
-
-  if (
-    fs.existsSync(imageFile)
-  ) {
-    await fs.promises.unlink(
-      imageFile
-    );
-  }
-}
-
-/* =========================================================
-   CREATE POST
-========================================================= */
-
-export function createPost(
-  input: PostInput
-) {
-  const slug = makeSlug(
-    input.slug ||
-      input.title
-  );
-
-  if (!slug) {
-    throw new Error(
-      "A title or slug is required."
-    );
-  }
-
-  if (
-    findPostFile(slug)
-  ) {
-    throw new Error(
-      "A post with this slug already exists."
-    );
-  }
-
-  fs.mkdirSync(
-    BLOG_DIR,
-    {
-      recursive: true,
-    }
-  );
-
-  const destination =
-    filePath(
-      slug,
-      "mdx"
-    );
-
-  fs.writeFileSync(
-    destination,
-    serializePost(input),
-    {
-      encoding: "utf8",
-      flag: "wx",
-    }
-  );
-
+export async function createPost(input: PostInput) {
+  const slug = makeSlug(input.slug || input.title);
+  if (!slug) throw new Error("A title or slug is required.");
+  const { error } = await createSupabaseAdmin().from("posts").insert(values(input, slug));
+  if (error?.code === "23505") throw new Error("A post with this slug already exists.");
+  if (error) throw new Error(error.message);
   return slug;
 }
 
-/* =========================================================
-   UPDATE POST
-========================================================= */
-
-export function updatePost(
-  previousSlug: string,
-  input: PostInput
-) {
-  const currentSlug =
-    makeSlug(previousSlug);
-
-  const nextSlug =
-    makeSlug(
-      input.slug ||
-        input.title
-    );
-
-  if (!currentSlug) {
-    throw new Error(
-      "Current post slug is required."
-    );
-  }
-
-  if (!nextSlug) {
-    throw new Error(
-      "A title or slug is required."
-    );
-  }
-
-  const currentFile =
-    findPostFile(
-      currentSlug
-    );
-
-  if (!currentFile) {
-    throw new Error(
-      "Post not found."
-    );
-  }
-
-  if (
-    currentSlug !==
-      nextSlug &&
-    findPostFile(
-      nextSlug
-    )
-  ) {
-    throw new Error(
-      "A post with this slug already exists."
-    );
-  }
-
-  const nextFile =
-    filePath(
-      nextSlug,
-      "mdx"
-    );
-
-  const serialized =
-    serializePost(input);
-
-  if (
-    currentSlug !==
-    nextSlug
-  ) {
-    fs.renameSync(
-      currentFile,
-      nextFile
-    );
-  }
-
-  fs.writeFileSync(
-    nextFile,
-    serialized,
-    {
-      encoding: "utf8",
-    }
-  );
-
-  return nextSlug;
+export async function updatePost(previousSlug: string, input: PostInput) {
+  const slug = makeSlug(input.slug || input.title);
+  if (!slug) throw new Error("A title or slug is required.");
+  const { data, error } = await createSupabaseAdmin().from("posts").update(values(input, slug)).eq("slug", makeSlug(previousSlug)).select("slug");
+  if (error?.code === "23505") throw new Error("A post with this slug already exists.");
+  if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error("Post not found.");
+  return slug;
 }
 
-/* =========================================================
-   DELETE POST
-========================================================= */
-
-export async function deletePost(
-  slug: string
-) {
-  const safeSlug =
-    makeSlug(slug);
-
-  if (!safeSlug) {
-    throw new Error(
-      "Post slug is required."
-    );
-  }
-
-  const postFile =
-    findPostFile(
-      safeSlug
-    );
-
-  if (!postFile) {
-    throw new Error(
-      "Post not found."
-    );
-  }
-
-  const post =
-    readPost(postFile);
-
-  await deletePostImage(
-    post.image
-  );
-
-  await fs.promises.unlink(
-    postFile
-  );
+export async function deletePost(slug: string) {
+  const post = await getPostBySlug(slug, { includeDrafts: true });
+  if (!post) throw new Error("Post not found.");
+  const { error } = await createSupabaseAdmin().from("posts").delete().eq("slug", makeSlug(slug));
+  if (error) throw new Error(error.message);
+  await deletePortfolioFile(post.image);
+  await deletePortfolioFile(post.video);
 }
