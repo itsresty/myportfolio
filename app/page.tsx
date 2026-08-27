@@ -7,6 +7,8 @@ import RecentProjects from "@/components/recent-projects";
 import ShopNewsletter from "@/components/shop-newsletter";
 import { getSiteSettings } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   const { availableForWork } = getSiteSettings();
 

@@ -8,6 +8,8 @@ import {
 import { getAllProjects } from "@/lib/projects";
 import ProjectCard from "@/components/projectcard";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProjectsPage() {
   const projects = await getAllProjects();
 

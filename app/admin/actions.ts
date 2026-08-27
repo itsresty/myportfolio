@@ -30,6 +30,7 @@ import {
 } from "@/lib/projects";
 
 import { updateSiteSettings } from "@/lib/site-settings";
+import { deletePortfolioFile, uploadPortfolioFile } from "@/lib/supabase/storage";
 
 /* =========================================================
    UPLOAD CONFIG
@@ -90,34 +91,7 @@ async function saveUploadedImage(
     );
   }
 
-  const uploadDir =
-    folder === "posts"
-      ? POSTS_UPLOAD_DIR
-      : PROJECTS_UPLOAD_DIR;
-
-  fs.mkdirSync(uploadDir, {
-    recursive: true,
-  });
-
-  const originalName = file.name || "image";
-
-  const extension =
-    path.extname(originalName).toLowerCase() || ".jpg";
-
-  const filename = `${crypto.randomUUID()}${extension}`;
-
-  const filePath = path.join(
-    uploadDir,
-    filename
-  );
-
-  const bytes = await file.arrayBuffer();
-
-  const buffer = Buffer.from(bytes);
-
-  fs.writeFileSync(filePath, buffer);
-
-  return `/uploads/${folder}/${filename}`;
+  return uploadPortfolioFile(file, folder);
 }
 
 async function saveUploadedVideo(file: File): Promise<string | undefined> {
@@ -126,11 +100,7 @@ async function saveUploadedVideo(file: File): Promise<string | undefined> {
     throw new Error("Invalid video type. Please upload MP4, WebM, OGG, or MOV.");
   }
   if (file.size > MAX_VIDEO_SIZE) throw new Error("Video is too large. Maximum size is 100MB.");
-  fs.mkdirSync(VIDEOS_UPLOAD_DIR, { recursive: true });
-  const extension = path.extname(file.name).toLowerCase() || ".mp4";
-  const filename = `${crypto.randomUUID()}${extension}`;
-  fs.writeFileSync(path.join(VIDEOS_UPLOAD_DIR, filename), Buffer.from(await file.arrayBuffer()));
-  return `/uploads/videos/${filename}`;
+  return uploadPortfolioFile(file, "videos");
 }
 
 function validVideoSource(value: string): boolean {
@@ -153,27 +123,7 @@ function deleteLocalImage(imagePath?: string) {
     return;
   }
 
-  // Only allow deleting files inside /public/uploads
-  if (!imagePath.startsWith("/uploads/")) {
-    return;
-  }
-
-  // Remove leading slash
-  const relativePath = imagePath.replace(/^\/+/, "");
-
-  const fullPath = path.join(
-    process.cwd(),
-    "public",
-    relativePath
-  );
-
-  if (fs.existsSync(fullPath)) {
-    try {
-      fs.unlinkSync(fullPath);
-    } catch {
-      // Ignore image deletion errors.
-    }
-  }
+  void deletePortfolioFile(imagePath);
 }
 
 /* =========================================================
@@ -585,7 +535,7 @@ export async function createProjectAction(
     const input =
       await projectInput(formData);
 
-    const slug = createProject(input);
+    const slug = await createProject(input);
 
     refreshProjects(slug);
 
@@ -630,7 +580,7 @@ export async function updateProjectAction(
     const input =
       await projectInput(formData);
 
-    const slug = updateProject(
+    const slug = await updateProject(
       previousSlug,
       input
     );
@@ -683,7 +633,7 @@ export async function deleteProjectAction(
 
   try {
     const project = await getProjectBySlug(slug);
-    deleteProject(slug);
+    await deleteProject(slug);
     deleteLocalImage(project?.image);
     deleteLocalImage(project?.video);
 
