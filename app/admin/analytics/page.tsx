@@ -8,7 +8,7 @@ export default async function AdminAnalyticsPage() {
   await requireAdmin();
   const posts = getAllPosts({ includeDrafts: true });
   const projects = await getAllProjects();
-  const { availableForWork } = getSiteSettings();
+  const { availableForWork } = await getSiteSettings();
   const publishedPosts = posts.filter((post) => post.status !== "draft").length;
 
   const stats = [

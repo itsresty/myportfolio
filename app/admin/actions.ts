@@ -678,7 +678,7 @@ export async function updateAvailabilityAction(
     formData.get("availableForWork") === "on";
 
   // Save the new setting.
-  updateSiteSettings({
+  await updateSiteSettings({
     availableForWork,
   });
 

@@ -16,7 +16,7 @@ export default async function AdminSettingsPage({
 
   const {
     availableForWork,
-  } = getSiteSettings();
+  } = await getSiteSettings();
 
   const { saved } =
     await searchParams;

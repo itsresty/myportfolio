@@ -9,8 +9,8 @@ import { getSiteSettings } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const { availableForWork } = getSiteSettings();
+export default async function Home() {
+  const { availableForWork } = await getSiteSettings();
 
   return (
     <main className="mainpage">

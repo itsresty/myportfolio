@@ -1,82 +1,68 @@
 import fs from "fs";
 import path from "path";
 
-const SETTINGS_FILE = path.join(process.cwd(), "content", "settings.json");
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabasePublic } from "@/lib/supabase/public";
 
 export type BusinessProfile = {
-  businessName: string;
-  businessTagline: string;
-  businessEmail: string;
-  businessPhone: string;
-  businessAddress: string;
-  businessWebsite: string;
-  businessTaxId: string;
+  businessName: string; businessTagline: string; businessEmail: string;
+  businessPhone: string; businessAddress: string; businessWebsite: string; businessTaxId: string;
 };
 
-export type SiteSettings = {
-  availableForWork: boolean;
-  businessProfile: BusinessProfile;
-};
+export type SiteSettings = { availableForWork: boolean; businessProfile: BusinessProfile };
 
-const defaultSettings: SiteSettings = {
+const defaults: SiteSettings = {
   availableForWork: true,
   businessProfile: {
-    businessName: "Resty Montero",
-    businessTagline: "Full-Stack Development & Digital Services",
-    businessEmail: "hello@restymontero.dev",
-    businessPhone: "+34 600 000 000",
-    businessAddress: "Madrid, Spain",
-    businessWebsite: "https://restymontero.dev",
-    businessTaxId: "",
+    businessName: "Resty Montero", businessTagline: "Full-Stack Development & Digital Services",
+    businessEmail: "hello@restymontero.dev", businessPhone: "+34 600 000 000",
+    businessAddress: "Madrid, Spain", businessWebsite: "https://restymontero.dev", businessTaxId: "",
   },
 };
 
-export function getBusinessProfile(): BusinessProfile {
-  return getSiteSettings().businessProfile;
+function merge(settings?: Partial<SiteSettings>): SiteSettings {
+  return {
+    ...defaults, ...settings,
+    businessProfile: { ...defaults.businessProfile, ...(settings?.businessProfile ?? {}) },
+  };
 }
 
-export function getSiteSettings(): SiteSettings {
-  if (!fs.existsSync(SETTINGS_FILE)) return defaultSettings;
-
+function legacySettings(): SiteSettings {
   try {
-    const parsed = JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf8"));
-
-    return {
-      ...defaultSettings,
-      ...parsed,
-      businessProfile: {
-        ...defaultSettings.businessProfile,
-        ...(parsed.businessProfile ?? {}),
-      },
-    };
+    return merge(JSON.parse(fs.readFileSync(path.join(process.cwd(), "content", "settings.json"), "utf8")));
   } catch {
-    return defaultSettings;
+    return defaults;
   }
 }
 
-export function updateSiteSettings(settings: Partial<SiteSettings>) {
-  const current = getSiteSettings();
-
-  const nextSettings: SiteSettings = {
-    ...current,
-    ...settings,
-    businessProfile: {
-      ...current.businessProfile,
-      ...(settings.businessProfile ?? {}),
-    },
-  };
-
-  fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
-  fs.writeFileSync(SETTINGS_FILE, `${JSON.stringify(nextSettings, null, 2)}\n`, "utf8");
-
-  return nextSettings;
+export async function getSiteSettings(): Promise<SiteSettings> {
+  try {
+    const { data, error } = await createSupabasePublic().from("site_settings")
+      .select("available_for_work,business_profile").eq("id", true).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return legacySettings();
+    return merge({ availableForWork: data.available_for_work, businessProfile: data.business_profile });
+  } catch (error) {
+    console.error("Supabase settings read failed; using bundled settings:", error);
+    return legacySettings();
+  }
 }
 
-export function updateBusinessProfile(profile: Partial<BusinessProfile>) {
-  return updateSiteSettings({
-    businessProfile: {
-      ...getBusinessProfile(),
-      ...profile,
-    },
+export async function getBusinessProfile(): Promise<BusinessProfile> {
+  return (await getSiteSettings()).businessProfile;
+}
+
+export async function updateSiteSettings(settings: Partial<SiteSettings>) {
+  const current = await getSiteSettings();
+  const next = merge({ ...current, ...settings, businessProfile: { ...current.businessProfile, ...(settings.businessProfile ?? {}) } });
+  const { error } = await createSupabaseAdmin().from("site_settings").upsert({
+    id: true, available_for_work: next.availableForWork, business_profile: next.businessProfile,
+    updated_at: new Date().toISOString(),
   });
+  if (error) throw new Error(error.message);
+  return next;
+}
+
+export async function updateBusinessProfile(profile: Partial<BusinessProfile>) {
+  return updateSiteSettings({ businessProfile: { ...(await getBusinessProfile()), ...profile } });
 }

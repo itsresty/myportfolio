@@ -26,7 +26,7 @@ export default async function AdminPage() {
 
   const posts = getAllPosts({ includeDrafts: true });
   const projects = await getAllProjects();
-  const { availableForWork } = getSiteSettings();
+  const { availableForWork } = await getSiteSettings();
   const viewAnalytics = getViewAnalytics();
 
   const publishedPosts = posts.filter(

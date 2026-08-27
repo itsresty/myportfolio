@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 
 import { getAdminSession } from "@/lib/admin-auth";
-import { getBusinessProfile } from "@/lib/site-settings";
+import { getBusinessProfile, type BusinessProfile } from "@/lib/site-settings";
 import type { Quote } from "@/lib/quotes";
 import QuotePdfDocument from "@/components/quote-pdf-document";
 
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 type DocumentType = "development" | "video";
 
-function renderQuotePdf(quote: Quote, business: ReturnType<typeof getBusinessProfile>, documentType: DocumentType) {
+function renderQuotePdf(quote: Quote, business: BusinessProfile, documentType: DocumentType) {
   return renderToBuffer(<QuotePdfDocument quote={quote} business={business} documentType={documentType} />);
 }
 
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const business = getBusinessProfile();
+    const business = await getBusinessProfile();
     const documentType = body.documentType === "video" ? "video" : "development";
     const buffer = await renderQuotePdf(body.quote, business, documentType);
 
