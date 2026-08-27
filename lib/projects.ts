@@ -1,6 +1,8 @@
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabasePublic } from "@/lib/supabase/public";
 import { makeSlug } from "@/lib/posts";
+import fs from "fs";
+import path from "path";
 
 export type Project = { slug: string; title: string; description: string; longDescription?: string; image?: string; video?: string; category: string; year: string; technologies: string[]; liveUrl?: string; featured?: boolean };
 export type ProjectInput = Omit<Project, "slug"> & { slug?: string };
@@ -22,22 +24,41 @@ function toProject(row: ProjectRow): Project {
 
 function throwError(error: { message: string } | null) { if (error) throw new Error(error.message); }
 
+function legacyProjects(): Project[] {
+  try {
+    const file = path.join(process.cwd(), "content", "projects.json");
+    return JSON.parse(fs.readFileSync(file, "utf8")) as Project[];
+  } catch {
+    return [];
+  }
+}
+
 export async function getAllProjects(): Promise<Project[]> {
-  const { data, error } = await createSupabasePublic().from("projects")
-    .select("slug,title,description,long_description,image,video,category,year,technologies,live_url,featured")
-    .order("created_at", { ascending: false });
-  throwError(error);
-  return ((data ?? []) as ProjectRow[]).map(toProject);
+  try {
+    const { data, error } = await createSupabasePublic().from("projects")
+      .select("slug,title,description,long_description,image,video,category,year,technologies,live_url,featured")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as ProjectRow[]).map(toProject);
+  } catch (error) {
+    console.error("Supabase project read failed; using bundled project data:", error);
+    return legacyProjects();
+  }
 }
 
 export async function getRecentProjects(limit = 3): Promise<Project[]> { return (await getAllProjects()).slice(0, limit); }
 
 export async function getProjectBySlug(slug: string): Promise<Project | undefined> {
-  const { data, error } = await createSupabasePublic().from("projects")
-    .select("slug,title,description,long_description,image,video,category,year,technologies,live_url,featured")
-    .eq("slug", makeSlug(slug)).maybeSingle();
-  throwError(error);
-  return data ? toProject(data as ProjectRow) : undefined;
+  try {
+    const { data, error } = await createSupabasePublic().from("projects")
+      .select("slug,title,description,long_description,image,video,category,year,technologies,live_url,featured")
+      .eq("slug", makeSlug(slug)).maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? toProject(data as ProjectRow) : undefined;
+  } catch (error) {
+    console.error("Supabase project read failed; using bundled project data:", error);
+    return legacyProjects().find((project) => project.slug === makeSlug(slug));
+  }
 }
 
 function values(input: ProjectInput, slug: string) {
