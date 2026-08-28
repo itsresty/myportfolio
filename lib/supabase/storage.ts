@@ -4,7 +4,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 const BUCKET = "portfolio";
 
-export async function uploadPortfolioFile(file: File, folder: "posts" | "projects" | "videos") {
+export async function uploadPortfolioFile(file: File, folder: "posts" | "projects" | "videos" | "certifications") {
   const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
   const objectPath = `${folder}/${crypto.randomUUID()}.${extension}`;
   const { error } = await createSupabaseAdmin().storage.from(BUCKET).upload(

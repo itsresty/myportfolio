@@ -30,6 +30,7 @@ function getImagePath(image?: string) {
 
 export default async function BlogIndex() {
   const posts = await getAllPosts();
+  const articles = posts.slice(0, 5);
 
   const featuredPost = posts[0];
   const secondaryPosts = posts.slice(1, 4);
@@ -255,7 +256,7 @@ export default async function BlogIndex() {
 
             <div className="divide-y divide-neutral-200">
 
-              {posts.map((post) => {
+              {articles.map((post) => {
                 const imagePath = getImagePath(post.image);
 
                 return (
@@ -339,6 +340,26 @@ export default async function BlogIndex() {
 
             </div>
 
+          )}
+
+          {posts.length > 0 && (
+            <div className="mt-10 flex flex-col gap-5 border-t border-neutral-200 pt-8 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">
+                  Want to keep reading?
+                </p>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Explore all {posts.length} articles, stories, and insights.
+                </p>
+              </div>
+              <Link
+                href="/blog/all-articles"
+                className="group inline-flex w-fit items-center gap-3 rounded-full border border-neutral-900 bg-neutral-900 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-neutral-900"
+              >
+                View all articles
+                <span className="text-base transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </Link>
+            </div>
           )}
 
         </section>

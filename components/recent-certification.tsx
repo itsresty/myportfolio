@@ -2,9 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Award } from "lucide-react";
 
-import { certifications } from "@/lib/certifications";
+import { getAllCertifications } from "@/lib/certifications";
 
-export default function RecentCertifications() {
+export default async function RecentCertifications() {
+  const certifications = await getAllCertifications();
   const recentCertifications = [...certifications]
     .sort((a, b) => b.year - a.year)
     .slice(0, 3);

@@ -387,6 +387,13 @@ export default function AdminProjectForm({
               readOnly
             />
 
+            <input
+              type="hidden"
+              name="currentImage"
+              value={project?.image ?? ""}
+              readOnly
+            />
+
             {imageName && (
               <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
 
@@ -410,8 +417,8 @@ export default function AdminProjectForm({
             )}
 
             <p className="mt-3 text-[11px] leading-5 text-slate-400">
-              JPG, PNG, WebP, or GIF. The image will be stored
-              locally in your public uploads folder.
+              JPG, PNG, WebP, or GIF. Images are stored securely in
+              Supabase Storage.
             </p>
 
           </section>

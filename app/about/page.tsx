@@ -9,6 +9,7 @@ import {
   Settings2,
   Sparkles,
 } from "lucide-react";
+import { getAllSkills, type SkillCategory } from "@/lib/skills";
 
 const capabilities = [
   {
@@ -98,85 +99,6 @@ const principles = [
   },
 ];
 
-const developmentTools = [
-  "Next.js",
-  "React",
-  "TypeScript",
-  "JavaScript",
-  "HTML",
-  "CSS",
-  "Tailwind CSS",
-  "Node.js",
-  "REST APIs",
-  "Git",
-  "GitHub",
-];
-
-const designSkills = [
-  "UI Design",
-  "UX Fundamentals",
-  "Responsive Design",
-  "Design Systems",
-  "Typography",
-  "Layout",
-  "Visual Hierarchy",
-  "Wireframing",
-  "Landing Pages",
-  "Portfolio Design",
-];
-
-const videoSkills = [
-  "Video Editing",
-  "YouTube",
-  "YouTube Shorts",
-  "TikTok",
-  "Instagram Reels",
-  "Talking Head",
-  "B-Roll",
-  "Captions",
-  "Subtitles",
-  "Sound Design",
-  "Transitions",
-  "Basic Color Correction",
-];
-
-const supportSkills = [
-  "Virtual Assistance",
-  "Web Research",
-  "Data Entry",
-  "Data Organization",
-  "File Management",
-  "Spreadsheet Management",
-  "Content Uploading",
-  "Website Management",
-  "Email Assistance",
-  "Administrative Support",
-];
-
-const workflowSkills = [
-  "Project Organization",
-  "Task Management",
-  "File Organization",
-  "Content Management",
-  "Documentation",
-  "Version Control",
-  "Research",
-  "Planning",
-  "Digital Organization",
-];
-
-const learningSkills = [
-  "Advanced React",
-  "Next.js",
-  "TypeScript",
-  "Web Performance",
-  "Accessibility",
-  "SEO",
-  "UI/UX",
-  "Motion Design",
-  "Creative Development",
-];
-
 const interests = [
   "Web Development",
   "UI Design",
@@ -186,7 +108,10 @@ const interests = [
   "Content Creation",
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const skills = await getAllSkills();
+  const skillsFor = (category: SkillCategory) =>
+    skills.filter((skill) => skill.category === category).map((skill) => skill.name);
   return (
     <main className="mainpage w-full">
 
@@ -599,7 +524,7 @@ export default function AboutPage() {
               title="Development"
               icon={<Code2 size={22} strokeWidth={1.5} />}
               description="Building responsive websites and modern web applications with a focus on clean architecture, usability, performance, and maintainable code."
-              skills={developmentTools}
+              skills={skillsFor("Development")}
               borderRight
             />
 
@@ -608,7 +533,7 @@ export default function AboutPage() {
               title="UI & Design"
               icon={<Palette size={22} strokeWidth={1.5} />}
               description="Designing clean and consistent interfaces with attention to typography, spacing, hierarchy, accessibility, responsiveness, and overall user experience."
-              skills={designSkills}
+              skills={skillsFor("UI & Design")}
             />
 
             <SkillCategory
@@ -616,7 +541,7 @@ export default function AboutPage() {
               title="Video & Content"
               icon={<Film size={22} strokeWidth={1.5} />}
               description="Editing and preparing digital video content for YouTube and social platforms, with an emphasis on pacing, storytelling, captions, sound, and visual consistency."
-              skills={videoSkills}
+              skills={skillsFor("Video & Content")}
               borderRight
             />
 
@@ -625,7 +550,7 @@ export default function AboutPage() {
               title="Digital Support"
               icon={<Headphones size={22} strokeWidth={1.5} />}
               description="Supporting businesses and individuals with everyday digital tasks, organization, research, content management, and administrative workflows."
-              skills={supportSkills}
+              skills={skillsFor("Digital Support")}
             />
 
             <SkillCategory
@@ -633,7 +558,7 @@ export default function AboutPage() {
               title="Workflow & Productivity"
               icon={<Settings2 size={22} strokeWidth={1.5} />}
               description="Organizing projects, managing files, tracking tasks, and maintaining an efficient workflow from the first idea through final delivery."
-              skills={workflowSkills}
+              skills={skillsFor("Workflow & Productivity")}
               borderRight
             />
 
@@ -642,7 +567,7 @@ export default function AboutPage() {
               title="Currently Learning"
               icon={<Sparkles size={22} strokeWidth={1.5} />}
               description="I believe staying curious is part of being a good digital creator. I regularly explore new technologies, techniques, and workflows to improve the quality of my work."
-              skills={learningSkills}
+              skills={skillsFor("Currently Learning")}
             />
 
           </div>

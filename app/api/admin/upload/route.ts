@@ -1,14 +1,19 @@
 
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import crypto from "crypto";
 import { requireAdmin } from "@/lib/admin-auth";
+import { uploadPortfolioFile } from "@/lib/supabase/storage";
 
 export async function POST(request: Request) {
   try {
     await requireAdmin();
+  } catch {
+    return NextResponse.json(
+      { error: "You are not authorized to upload images." },
+      { status: 401 }
+    );
+  }
 
+  try {
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -54,30 +59,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const uploadDirectory = path.join(
-      process.cwd(),
-      "public",
-      "images",
-      "blog"
-    );
-
-    await mkdir(uploadDirectory, {
-      recursive: true,
-    });
-
-    const uniqueName = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${extension}`;
-
-    const filePath = path.join(
-      uploadDirectory,
-      uniqueName
-    );
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    await writeFile(filePath, buffer);
-
-    const publicPath = `/images/blog/${uniqueName}`;
+    const publicPath = await uploadPortfolioFile(file, "posts");
 
     return NextResponse.json({
       success: true,
@@ -88,12 +70,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        error: "You are not authorized to upload images.",
+        error: "Unable to upload the image. Please try again.",
       },
       {
-        status: 401,
+        status: 500,
       }
     );
   }
 }
-

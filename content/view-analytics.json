@@ -1,16 +1,20 @@
 {
-  "totalViews": 123,
+  "totalViews": 215,
   "pages": {
     "/contact": 26,
-    "/blog": 14,
-    "/certifications/javascript.pdf": 50,
-    "/": 13,
+    "/blog": 26,
+    "/certifications/javascript.pdf": 94,
+    "/": 22,
     "/blog/my-post": 10,
-    "/blog/the-power-of-keeping-things-simple": 10
+    "/blog/the-power-of-keeping-things-simple": 11,
+    "/project": 21,
+    "/blog/learning-to-let-go-after-heartbreak": 1,
+    "/blog/all-articles": 3,
+    "/project/all-projects": 1
   },
   "visitors": {
     "8df7404d-5329-4c24-a5fe-b255965f7e39": {
-      "lastSeen": 1787868818100,
+      "lastSeen": 1787907591980,
       "path": "/certifications/javascript.pdf"
     }
   }

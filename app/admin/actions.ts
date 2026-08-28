@@ -1,8 +1,6 @@
+
 "use server";
 
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -30,25 +28,26 @@ import {
 } from "@/lib/projects";
 
 import { updateSiteSettings } from "@/lib/site-settings";
-import { deletePortfolioFile, uploadPortfolioFile } from "@/lib/supabase/storage";
+import {
+  createSkill,
+  deleteSkill,
+  updateSkill,
+  type SkillCategory,
+} from "@/lib/skills";
+import {
+  createCertification,
+  deleteCertification,
+  updateCertification,
+  type CertificationInput,
+} from "@/lib/certifications";
+import {
+  deletePortfolioFile,
+  uploadPortfolioFile,
+} from "@/lib/supabase/storage";
 
 /* =========================================================
    UPLOAD CONFIG
 ========================================================= */
-
-const POSTS_UPLOAD_DIR = path.join(
-  process.cwd(),
-  "public",
-  "uploads",
-  "posts"
-);
-
-const PROJECTS_UPLOAD_DIR = path.join(
-  process.cwd(),
-  "public",
-  "uploads",
-  "projects"
-);
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -59,8 +58,14 @@ const ALLOWED_IMAGE_TYPES = [
 ];
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const VIDEOS_UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "videos");
-const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/quicktime"];
+
+const ALLOWED_VIDEO_TYPES = [
+  "video/mp4",
+  "video/webm",
+  "video/ogg",
+  "video/quicktime",
+];
+
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
 
 /* =========================================================
@@ -94,36 +99,77 @@ async function saveUploadedImage(
   return uploadPortfolioFile(file, folder);
 }
 
-async function saveUploadedVideo(file: File): Promise<string | undefined> {
-  if (!file || !(file instanceof File) || file.size === 0) return undefined;
-  if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
-    throw new Error("Invalid video type. Please upload MP4, WebM, OGG, or MOV.");
+/* =========================================================
+   VIDEO UPLOAD
+========================================================= */
+
+async function saveUploadedVideo(
+  file: File
+): Promise<string | undefined> {
+  if (
+    !file ||
+    !(file instanceof File) ||
+    file.size === 0
+  ) {
+    return undefined;
   }
-  if (file.size > MAX_VIDEO_SIZE) throw new Error("Video is too large. Maximum size is 100MB.");
+
+  if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+    throw new Error(
+      "Invalid video type. Please upload MP4, WebM, OGG, or MOV."
+    );
+  }
+
+  if (file.size > MAX_VIDEO_SIZE) {
+    throw new Error(
+      "Video is too large. Maximum size is 100MB."
+    );
+  }
+
   return uploadPortfolioFile(file, "videos");
 }
 
-function validVideoSource(value: string): boolean {
-  if (!value) return true;
-  if (value.startsWith("/uploads/videos/")) return true;
+/* =========================================================
+   VIDEO VALIDATION
+========================================================= */
+
+function validVideoSource(
+  value: string
+): boolean {
+  if (!value) {
+    return true;
+  }
+
+  if (value.startsWith("/uploads/videos/")) {
+    return true;
+  }
+
   try {
     const url = new URL(value);
-    return ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"].includes(url.hostname);
+
+    return [
+      "youtube.com",
+      "www.youtube.com",
+      "m.youtube.com",
+      "youtu.be",
+    ].includes(url.hostname);
   } catch {
     return false;
   }
 }
 
 /* =========================================================
-   DELETE LOCAL IMAGE
+   DELETE FILE
 ========================================================= */
 
-function deleteLocalImage(imagePath?: string) {
-  if (!imagePath) {
+function deleteLocalImage(
+  filePath?: string
+) {
+  if (!filePath) {
     return;
   }
 
-  void deletePortfolioFile(imagePath);
+  void deletePortfolioFile(filePath);
 }
 
 /* =========================================================
@@ -156,8 +202,11 @@ async function postInput(
     );
   }
 
-  const imageFile = formData.get("imageFile");
-  const videoFile = formData.get("videoFile");
+  const imageFile =
+    formData.get("imageFile");
+
+  const videoFile =
+    formData.get("videoFile");
 
   let image = value("image");
 
@@ -173,8 +222,22 @@ async function postInput(
   }
 
   let video = value("video");
-  if (videoFile instanceof File && videoFile.size > 0) video = (await saveUploadedVideo(videoFile)) ?? video;
-  if (!validVideoSource(video)) throw new Error("Use a YouTube link or upload a video file.");
+
+  if (
+    videoFile instanceof File &&
+    videoFile.size > 0
+  ) {
+    video =
+      (await saveUploadedVideo(
+        videoFile
+      )) ?? video;
+  }
+
+  if (!validVideoSource(video)) {
+    throw new Error(
+      "Use a YouTube link or upload a video file."
+    );
+  }
 
   return {
     title,
@@ -220,8 +283,11 @@ async function projectInput(
     );
   }
 
-  const imageFile = formData.get("imageFile");
-  const videoFile = formData.get("videoFile");
+  const imageFile =
+    formData.get("imageFile");
+
+  const videoFile =
+    formData.get("videoFile");
 
   let image =
     value("image") || undefined;
@@ -238,8 +304,22 @@ async function projectInput(
   }
 
   let video = value("video");
-  if (videoFile instanceof File && videoFile.size > 0) video = (await saveUploadedVideo(videoFile)) ?? video;
-  if (!validVideoSource(video)) throw new Error("Use a YouTube link or upload a video file.");
+
+  if (
+    videoFile instanceof File &&
+    videoFile.size > 0
+  ) {
+    video =
+      (await saveUploadedVideo(
+        videoFile
+      )) ?? video;
+  }
+
+  if (!validVideoSource(video)) {
+    throw new Error(
+      "Use a YouTube link or upload a video file."
+    );
+  }
 
   return {
     title,
@@ -265,16 +345,40 @@ async function projectInput(
    CACHE - POSTS
 ========================================================= */
 
-function refreshPosts(slug?: string) {
+function refreshPosts(
+  slug?: string,
+  previousSlug?: string
+) {
+  // Homepage
+  revalidatePath("/");
+
+  // Public blog pages
   revalidatePath("/blog");
+
+  // Admin pages
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
 
+  // Current post
   if (slug) {
     revalidatePath(`/blog/${slug}`);
 
     revalidatePath(
       `/admin/posts/${slug}/edit`
+    );
+  }
+
+  // Old URL when slug changes
+  if (
+    previousSlug &&
+    previousSlug !== slug
+  ) {
+    revalidatePath(
+      `/blog/${previousSlug}`
+    );
+
+    revalidatePath(
+      `/admin/posts/${previousSlug}/edit`
     );
   }
 }
@@ -283,36 +387,54 @@ function refreshPosts(slug?: string) {
    CACHE - PROJECTS
 ========================================================= */
 
-function refreshProjects(slug?: string) {
+function refreshProjects(
+  slug?: string,
+  previousSlug?: string
+) {
+  // Homepage
+  revalidatePath("/");
+
+  // Public project listing pages
+  revalidatePath("/projects");
   revalidatePath("/project");
+
+  // Admin pages
   revalidatePath("/admin");
   revalidatePath("/admin/projects");
 
+  // Current project page
   if (slug) {
+    revalidatePath(`/projects/${slug}`);
     revalidatePath(`/project/${slug}`);
 
     revalidatePath(
       `/admin/projects/${slug}/edit`
     );
   }
+
+  // Old project URL when slug changes
+  if (
+    previousSlug &&
+    previousSlug !== slug
+  ) {
+    revalidatePath(
+      `/projects/${previousSlug}`
+    );
+
+    revalidatePath(
+      `/project/${previousSlug}`
+    );
+
+    revalidatePath(
+      `/admin/projects/${previousSlug}/edit`
+    );
+  }
 }
 
 /* =========================================================
-   AUTH
+   AUTH - LOGIN
 ========================================================= */
 
-/**
- * Admin login
- *
- * The login form must contain:
- *
- * name="username"
- * name="password"
- *
- * setAdminSession() checks the credentials,
- * creates the secure session cookie,
- * and returns true/false.
- */
 export async function loginAction(
   formData: FormData
 ) {
@@ -323,16 +445,19 @@ export async function loginAction(
   const password = String(
     formData.get("password") ?? ""
   );
+
   const requestedPath = String(
     formData.get("next") ?? ""
   );
+
   const destination =
     requestedPath.startsWith("/admin") &&
-    !requestedPath.startsWith("/admin/login")
+    !requestedPath.startsWith(
+      "/admin/login"
+    )
       ? requestedPath
       : "/admin";
 
-  // Make sure both fields were submitted.
   if (!username || !password) {
     redirect(
       "/admin/login?error=missing"
@@ -342,33 +467,32 @@ export async function loginAction(
   let authenticated = false;
 
   try {
-    // Authenticate the admin and create the signed session cookie.
-    authenticated = await setAdminSession(
-      username,
-      password
-    );
+    authenticated =
+      await setAdminSession(
+        username,
+        password
+      );
   } catch (error) {
-    // A missing server-side credential should never leave the visitor on a
-    // generic error screen. It is safe to identify this as a configuration
-    // problem without exposing any credential values.
     if (
       error instanceof Error &&
-      error.message.includes("environment variables")
+      error.message.includes(
+        "environment variables"
+      )
     ) {
-      redirect("/admin/login?error=config");
+      redirect(
+        "/admin/login?error=config"
+      );
     }
 
     throw error;
   }
 
-  // Invalid username/password.
   if (!authenticated) {
     redirect(
       "/admin/login?error=invalid"
     );
   }
 
-  // Successful login.
   redirect(destination);
 }
 
@@ -389,14 +513,14 @@ export async function logoutAction() {
 export async function createPostAction(
   formData: FormData
 ) {
-  // Only authenticated admins can create posts.
   await requireAdmin();
 
   try {
     const input =
       await postInput(formData);
 
-    const slug = await createPost(input);
+    const slug =
+      await createPost(input);
 
     refreshPosts(slug);
 
@@ -429,25 +553,26 @@ export async function updatePostAction(
   previousSlug: string,
   formData: FormData
 ) {
-  // Only authenticated admins can update posts.
   await requireAdmin();
 
   try {
     const oldImage = String(
       formData.get("currentImage") ?? ""
     ).trim();
-    const oldVideo = String(formData.get("currentVideo") ?? "").trim();
+
+    const oldVideo = String(
+      formData.get("currentVideo") ?? ""
+    ).trim();
 
     const input =
       await postInput(formData);
 
-    const slug = await updatePost(
-      previousSlug,
-      input
-    );
+    const slug =
+      await updatePost(
+        previousSlug,
+        input
+      );
 
-    // Delete old image only if a new image
-    // was actually uploaded.
     if (
       oldImage &&
       input.image &&
@@ -456,10 +581,17 @@ export async function updatePostAction(
       deleteLocalImage(oldImage);
     }
 
-    if (oldVideo && oldVideo !== input.video) deleteLocalImage(oldVideo);
+    if (
+      oldVideo &&
+      oldVideo !== input.video
+    ) {
+      deleteLocalImage(oldVideo);
+    }
 
-    refreshPosts(previousSlug);
-    refreshPosts(slug);
+    refreshPosts(
+      slug,
+      previousSlug
+    );
 
     redirect(
       `/admin/posts/${slug}/edit?saved=updated`
@@ -489,14 +621,26 @@ export async function updatePostAction(
 export async function deletePostAction(
   slug: string
 ) {
-  // Only authenticated admins can delete posts.
   await requireAdmin();
 
   try {
-    const post = await getPostBySlug(slug, { includeDrafts: true });
+    const post =
+      await getPostBySlug(
+        slug,
+        {
+          includeDrafts: true,
+        }
+      );
+
     await deletePost(slug);
-    deleteLocalImage(post?.image);
-    deleteLocalImage(post?.video);
+
+    deleteLocalImage(
+      post?.image
+    );
+
+    deleteLocalImage(
+      post?.video
+    );
 
     refreshPosts(slug);
 
@@ -528,15 +672,16 @@ export async function deletePostAction(
 export async function createProjectAction(
   formData: FormData
 ) {
-  // Only authenticated admins can create projects.
   await requireAdmin();
 
   try {
     const input =
       await projectInput(formData);
 
-    const slug = await createProject(input);
+    const slug =
+      await createProject(input);
 
+    // Refresh public and admin pages
     refreshProjects(slug);
 
     redirect(
@@ -568,37 +713,52 @@ export async function updateProjectAction(
   previousSlug: string,
   formData: FormData
 ) {
-  // Only authenticated admins can update projects.
   await requireAdmin();
 
   try {
     const oldImage = String(
       formData.get("currentImage") ?? ""
     ).trim();
-    const oldVideo = String(formData.get("currentVideo") ?? "").trim();
+
+    const oldVideo = String(
+      formData.get("currentVideo") ?? ""
+    ).trim();
 
     const input =
       await projectInput(formData);
 
-    const slug = await updateProject(
-      previousSlug,
-      input
-    );
+    const slug =
+      await updateProject(
+        previousSlug,
+        input
+      );
 
-    // Delete old image only if a new image
-    // was actually uploaded.
+    // Delete old image if it was replaced.
     if (
       oldImage &&
       input.image &&
       oldImage !== input.image
     ) {
-      deleteLocalImage(oldImage);
+      deleteLocalImage(
+        oldImage
+      );
     }
 
-    if (oldVideo && oldVideo !== input.video) deleteLocalImage(oldVideo);
+    // Delete old video if it was replaced.
+    if (
+      oldVideo &&
+      oldVideo !== input.video
+    ) {
+      deleteLocalImage(
+        oldVideo
+      );
+    }
 
-    refreshProjects(previousSlug);
-    refreshProjects(slug);
+    // Refresh new and old URLs.
+    refreshProjects(
+      slug,
+      previousSlug
+    );
 
     redirect(
       `/admin/projects/${slug}/edit?saved=updated`
@@ -628,15 +788,30 @@ export async function updateProjectAction(
 export async function deleteProjectAction(
   slug: string
 ) {
-  // Only authenticated admins can delete projects.
   await requireAdmin();
 
   try {
-    const project = await getProjectBySlug(slug);
-    await deleteProject(slug);
-    deleteLocalImage(project?.image);
-    deleteLocalImage(project?.video);
+    // Get project first so we can remove
+    // associated Supabase Storage files.
+    const project =
+      await getProjectBySlug(
+        slug
+      );
 
+    // Delete database record.
+    await deleteProject(slug);
+
+    // Delete image from storage.
+    deleteLocalImage(
+      project?.image
+    );
+
+    // Delete video from storage.
+    deleteLocalImage(
+      project?.video
+    );
+
+    // Refresh all relevant pages.
     refreshProjects(slug);
 
     redirect(
@@ -667,35 +842,143 @@ export async function deleteProjectAction(
 export async function updateAvailabilityAction(
   formData: FormData
 ) {
-  // Make sure only logged-in admins can change this.
   await requireAdmin();
 
-  // Checkbox:
-  //
-  // checked   = "on"
-  // unchecked = null
   const availableForWork =
-    formData.get("availableForWork") === "on";
+    formData.get(
+      "availableForWork"
+    ) === "on";
 
-  // Save the new setting.
   await updateSiteSettings({
     availableForWork,
   });
 
-  // Revalidate public portfolio.
+  // Refresh public portfolio.
   revalidatePath("/");
 
-  // Revalidate admin dashboard.
+  // Refresh admin dashboard.
   revalidatePath("/admin");
 
-  // Revalidate settings page.
-  revalidatePath("/admin/settings");
+  // Refresh settings page.
+  revalidatePath(
+    "/admin/settings"
+  );
 
-  // Stay on the SETTINGS page after clicking
-  // the toggle.
   redirect(
     `/admin/settings?saved=availability&status=${
-      availableForWork ? "on" : "off"
+      availableForWork
+        ? "on"
+        : "off"
     }`
   );
+}
+
+function skillInput(formData: FormData) {
+  return {
+    name: String(formData.get("name") ?? ""),
+    category: String(formData.get("category") ?? "") as SkillCategory,
+    sortOrder: Number(formData.get("sortOrder") ?? 0) || 0,
+  };
+}
+
+export async function createSkillAction(formData: FormData) {
+  await requireAdmin();
+  try {
+    await createSkill(skillInput(formData));
+    revalidatePath("/about");
+    revalidatePath("/admin/skills");
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Unable to create skill.");
+  }
+}
+
+export async function updateSkillAction(id: string, formData: FormData) {
+  await requireAdmin();
+  try {
+    await updateSkill(id, skillInput(formData));
+    revalidatePath("/about");
+    revalidatePath("/admin/skills");
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Unable to update skill.");
+  }
+}
+
+export async function deleteSkillAction(id: string) {
+  await requireAdmin();
+  try {
+    await deleteSkill(id);
+    revalidatePath("/about");
+    revalidatePath("/admin/skills");
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Unable to delete skill.");
+  }
+}
+
+async function certificationInput(formData: FormData): Promise<CertificationInput> {
+  const value = (name: string) => String(formData.get(name) ?? "").trim();
+  const imageFile = formData.get("imageFile");
+  const pdfFile = formData.get("pdfFile");
+  let image = value("image");
+  let pdf = value("pdf");
+
+  if (imageFile instanceof File && imageFile.size > 0) {
+    if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type) || imageFile.size > MAX_IMAGE_SIZE) {
+      throw new Error("Certificate image must be a JPG, PNG, WEBP, or GIF under 5MB.");
+    }
+    image = await uploadPortfolioFile(imageFile, "certifications");
+  }
+  if (pdfFile instanceof File && pdfFile.size > 0) {
+    if (pdfFile.type !== "application/pdf" || pdfFile.size > 10 * 1024 * 1024) {
+      throw new Error("Certificate file must be a PDF under 10MB.");
+    }
+    pdf = await uploadPortfolioFile(pdfFile, "certifications");
+  }
+
+  return { title: value("title"), issuer: value("issuer"), year: Number(value("year")), image, pdf };
+}
+
+export async function createCertificationAction(formData: FormData) {
+  await requireAdmin();
+  try {
+    await createCertification(await certificationInput(formData));
+    revalidatePath("/");
+    revalidatePath("/certifications");
+    revalidatePath("/admin/certifications");
+    redirect("/admin/certifications?saved=created");
+  } catch (error) {
+    redirect(`/admin/certifications/new?error=${encodeURIComponent(error instanceof Error ? error.message : "Unable to create certification")}`);
+  }
+}
+
+export async function updateCertificationAction(id: string, formData: FormData) {
+  await requireAdmin();
+  try {
+    const previousImage = String(formData.get("currentImage") ?? "");
+    const previousPdf = String(formData.get("currentPdf") ?? "");
+    const input = await certificationInput(formData);
+    await updateCertification(id, input);
+    if (previousImage && previousImage !== input.image) void deletePortfolioFile(previousImage);
+    if (previousPdf && previousPdf !== input.pdf) void deletePortfolioFile(previousPdf);
+    revalidatePath("/");
+    revalidatePath("/certifications");
+    revalidatePath("/admin/certifications");
+    redirect("/admin/certifications?saved=updated");
+  } catch (error) {
+    redirect(`/admin/certifications/${id}/edit?error=${encodeURIComponent(error instanceof Error ? error.message : "Unable to update certification")}`);
+  }
+}
+
+export async function deleteCertificationAction(id: string, image?: string, pdf?: string) {
+  await requireAdmin();
+  try {
+    await deleteCertification(id);
+    void deletePortfolioFile(image);
+    void deletePortfolioFile(pdf);
+    revalidatePath("/");
+    revalidatePath("/certifications");
+    revalidatePath("/admin/certifications");
+    redirect("/admin/certifications?deleted=1");
+  } catch (error) {
+    redirect(`/admin/certifications?error=${encodeURIComponent(error instanceof Error ? error.message : "Unable to delete certification")}`);
+  }
 }

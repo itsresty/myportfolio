@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   BarChart3,
+  Award,
   Calculator,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,7 @@ import {
   Menu,
   Settings,
   UserRound,
+  Wrench,
   X,
 } from "lucide-react";
 import { logoutAction } from "@/app/admin/actions";
@@ -24,6 +26,8 @@ const navigation = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Projects", href: "/admin/projects", icon: FolderKanban },
   { label: "Posts", href: "/admin/posts", icon: FileText },
+  { label: "Certifications", href: "/admin/certifications", icon: Award },
+  { label: "About skills", href: "/admin/skills", icon: Wrench },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 ];
 

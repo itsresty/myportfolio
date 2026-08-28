@@ -6,9 +6,10 @@ import {
   Award,
 } from "lucide-react";
 
-import { certifications } from "@/lib/certifications";
+import { getAllCertifications } from "@/lib/certifications";
 
-export default function CertificationsPage() {
+export default async function CertificationsPage() {
+  const certifications = await getAllCertifications();
   const sortedCertifications = [...certifications].sort(
     (a, b) => b.year - a.year
   );

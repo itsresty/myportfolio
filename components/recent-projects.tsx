@@ -5,10 +5,9 @@ import { getAllProjects } from "@/lib/projects";
 
 export default async function RecentProjects() {
   const projects = await getAllProjects();
-  const recentProjects = projects
-    .filter((project) => project.featured)
-    .concat(projects.filter((project) => !project.featured))
-    .slice(0, 2);
+  // getAllProjects is ordered by created_at descending, so this always
+  // shows the most recently created projects from Supabase.
+  const recentProjects = projects.slice(0, 2);
 
   if (recentProjects.length === 0) return null;
   return (

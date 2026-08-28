@@ -12,21 +12,9 @@ export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
   const projects = await getAllProjects();
+  const previewProjects = projects.slice(0, 5);
 
-  const webProjects = projects.filter(
-    (project) =>
-      project.category === "Web Development" ||
-      project.category === "Web App" ||
-      project.category === "E-commerce"
-  );
-
-  const designProjects = projects.filter(
-    (project) =>
-      project.category === "UI/UX Design" ||
-      project.category === "Web Design"
-  );
-
-  const videos = projects
+  const videos = previewProjects
     .filter(
       (project) =>
         project.category === "Video Editing" ||
@@ -40,6 +28,34 @@ export default async function ProjectsPage() {
       image: project.image as string,
       href: `/project/${project.slug}`,
     }));
+
+  // A project belongs to one preview section only. This keeps the public
+  // page at the promised five projects even when a web project has a video.
+  const videoProjectSlugs = new Set(
+    videos.map((video) => video.href.replace("/project/", ""))
+  );
+
+  const webProjects = previewProjects.filter(
+    (project) =>
+      !videoProjectSlugs.has(project.slug) &&
+      (project.category === "Web Development" ||
+        project.category === "Web App" ||
+        project.category === "E-commerce")
+  );
+
+  const designProjects = previewProjects.filter(
+    (project) =>
+      !videoProjectSlugs.has(project.slug) &&
+      (project.category === "UI/UX Design" ||
+        project.category === "Web Design")
+  );
+
+  const otherProjects = previewProjects.filter(
+    (project) =>
+      !webProjects.some((item) => item.slug === project.slug) &&
+      !designProjects.some((item) => item.slug === project.slug) &&
+      !videos.some((item) => item.href === `/project/${project.slug}`)
+  );
 
   return (
     <main className="mainpage w-full">
@@ -430,6 +446,31 @@ export default async function ProjectsPage() {
 
           </section>
         )}
+
+        {otherProjects.length > 0 && (
+          <section className="border-b border-neutral-200 py-20 md:py-28">
+            <div className="mb-12">
+              <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">More work</p>
+              <h2 className="text-3xl font-semibold tracking-[-0.04em] md:text-5xl">Other projects.</h2>
+            </div>
+            <div className="grid gap-8 md:grid-cols-2">
+              {otherProjects.map((project) => <ProjectCard key={project.slug} project={project} />)}
+            </div>
+          </section>
+        )}
+
+        <section className="border-b border-neutral-200 py-20 md:py-28">
+          <div className="flex flex-col gap-8 rounded-3xl bg-neutral-950 px-7 py-10 text-white md:flex-row md:items-end md:justify-between md:px-12 md:py-14">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">Full portfolio</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] md:text-5xl">Explore all projects.</h2>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-white/60 md:text-base">Browse every website, design, video, and digital project in one place.</p>
+            </div>
+            <Link href="/project/all-projects" className="group inline-flex w-fit items-center gap-3 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:scale-[1.02]">
+              View all projects <ArrowUpRight size={17} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </section>
 
 
         {/* =====================================================
